@@ -4,13 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack --mode=production",
+    "watch": "webpack --watch --mode=development",
+    "lint": "npx eslint src/"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fusioncharts/mason.git"
   },
-  "author": "priyanjit dey",
+  "author": "FusionCharts",
+  "contributors": [{
+    "name": "Priyanjit Dey",
+    "email": "priyanjit.dey@gmail.com"
+  }],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/fusioncharts/mason/issues"
