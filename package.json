@@ -1,0 +1,28 @@
+{
+  "name": "mason",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fusioncharts/mason.git"
+  },
+  "author": "priyanjit dey",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fusioncharts/mason/issues"
+  },
+  "homepage": "https://github.com/fusioncharts/mason#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "babel-loader": "^8.0.6",
+    "eslint": "^6.0.1",
+    "webpack": "^4.36.1",
+    "webpack-cli": "^3.3.6"
+  }
+}
