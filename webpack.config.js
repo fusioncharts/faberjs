@@ -7,6 +7,13 @@ module.exports = {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist')
   },
+  devServer: {
+    contentBase: path.resolve(__dirname, 'dist'),
+    compress: true,
+    open: true,
+    hot: true,
+    port: 9000
+  },
   module: {
     rules: [{
       test: /\.js$/,
