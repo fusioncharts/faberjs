@@ -8,7 +8,7 @@ module.exports = {
     path: path.resolve(__dirname, 'dist')
   },
   devServer: {
-    contentBase: path.resolve(__dirname, 'dist'),
+    contentBase: path.resolve(__dirname, 'visualiser'),
     compress: true,
     open: true,
     hot: true,
