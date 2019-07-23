@@ -86,15 +86,27 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "./src/grid/index.js":
+/*!***************************!*\
+  !*** ./src/grid/index.js ***!
+  \***************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"default\", function() { return computeGridLayout; });\n/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils */ \"./src/utils/index.js\");\n/* harmony import */ var _mason__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../mason */ \"./src/mason.js\");\n\n\nfunction computeGridLayout(domTree) {\n  if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__[\"getDisplayProperty\"])(domTree)) {\n    //TODO: fix me\n    return Object(_mason__WEBPACK_IMPORTED_MODULE_1__[\"computeLayout\"])(domTree);\n  }\n}\n\n//# sourceURL=webpack:///./src/grid/index.js?");
+
+/***/ }),
+
 /***/ "./src/index.js":
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/*! exports provided: createLayout */
+/*! exports provided: computeLayout */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _mason__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./mason */ \"./src/mason.js\");\n/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, \"createLayout\", function() { return _mason__WEBPACK_IMPORTED_MODULE_0__[\"createLayout\"]; });\n\n\n\n\n//# sourceURL=webpack:///./src/index.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _mason__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./mason */ \"./src/mason.js\");\n/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, \"computeLayout\", function() { return _mason__WEBPACK_IMPORTED_MODULE_0__[\"computeLayout\"]; });\n\n\n\n\n//# sourceURL=webpack:///./src/index.js?");
 
 /***/ }),
 
@@ -102,11 +114,35 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _mas
 /*!**********************!*\
   !*** ./src/mason.js ***!
   \**********************/
-/*! exports provided: createLayout */
+/*! exports provided: computeLayout */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"createLayout\", function() { return createLayout; });\nvar createLayout = function createLayout(domTree) {\n  return domTree;\n};\n\n\n\n//# sourceURL=webpack:///./src/mason.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"computeLayout\", function() { return computeLayout; });\n/* harmony import */ var _grid__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./grid */ \"./src/grid/index.js\");\n/* harmony import */ var _utils_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/constants */ \"./src/utils/constants.js\");\n/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils */ \"./src/utils/index.js\");\n\n\n\n\nvar getComputeFn = function getComputeFn(display) {\n  switch (display) {\n    case _utils_constants__WEBPACK_IMPORTED_MODULE_1__[\"DISPLAY_GRID\"]:\n      return _grid__WEBPACK_IMPORTED_MODULE_0__[\"default\"];\n\n    case _utils_constants__WEBPACK_IMPORTED_MODULE_1__[\"DISPLAY_FLEX\"]:\n      return _grid__WEBPACK_IMPORTED_MODULE_0__[\"default\"];\n\n    default:\n      // Probably throw unsupported error?\n      return _grid__WEBPACK_IMPORTED_MODULE_0__[\"default\"];\n  }\n},\n    computeLayout = function computeLayout() {\n  var domTree = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};\n  return getComputeFn(Object(_utils__WEBPACK_IMPORTED_MODULE_2__[\"getDisplayProperty\"])(domTree))(domTree);\n};\n\n\n\n//# sourceURL=webpack:///./src/mason.js?");
+
+/***/ }),
+
+/***/ "./src/utils/constants.js":
+/*!********************************!*\
+  !*** ./src/utils/constants.js ***!
+  \********************************/
+/*! exports provided: DISPLAY_GRID, DISPLAY_FLEX */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"DISPLAY_GRID\", function() { return DISPLAY_GRID; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"DISPLAY_FLEX\", function() { return DISPLAY_FLEX; });\nvar DISPLAY_GRID = 'grid';\nvar DISPLAY_FLEX = 'flex';\n\n//# sourceURL=webpack:///./src/utils/constants.js?");
+
+/***/ }),
+
+/***/ "./src/utils/index.js":
+/*!****************************!*\
+  !*** ./src/utils/index.js ***!
+  \****************************/
+/*! exports provided: getDisplayProperty */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"getDisplayProperty\", function() { return getDisplayProperty; });\nvar getDisplayProperty = function getDisplayProperty(domTree) {\n  return domTree.style && domTree.style.display;\n};\n\n\n\n//# sourceURL=webpack:///./src/utils/index.js?");
 
 /***/ })
 
