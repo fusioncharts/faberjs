@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "webpack-dev-server --host=0.0.0.0 --port 9000 --hot --config webpack.config.js",
     "build": "webpack --mode=production",
     "watch": "webpack --watch --mode=development",
     "lint": "npx eslint src/"
@@ -13,10 +14,16 @@
     "url": "git+https://github.com/fusioncharts/mason.git"
   },
   "author": "FusionCharts",
-  "contributors": [{
-    "name": "Priyanjit Dey",
-    "email": "priyanjit.dey@gmail.com"
-  }],
+  "contributors": [
+    {
+      "name": "Priyanjit Dey",
+      "email": "priyanjit.dey@gmail.com"
+    },
+    {
+      "name": "Nilarnab Mookherjee",
+      "email": "nilarnab.mookherjee@gmail.com"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/fusioncharts/mason/issues"
@@ -29,6 +36,7 @@
     "babel-loader": "^8.0.6",
     "eslint": "^6.0.1",
     "webpack": "^4.36.1",
-    "webpack-cli": "^3.3.6"
+    "webpack-cli": "^3.3.6",
+    "webpack-dev-server": "^3.7.2"
   }
 }
