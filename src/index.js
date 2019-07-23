@@ -1,5 +1,5 @@
-import { createLayout } from './mason';
+import { computeLayout } from './mason';
 
 export {
-  createLayout
+  computeLayout
 };
