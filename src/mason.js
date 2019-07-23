@@ -1,5 +1,6 @@
 import computeGridLayout from "./grid";
-import { DISPLAY_GRID, DISPLAY_FLEX } from "./constants";
+import { DISPLAY_GRID, DISPLAY_FLEX } from "./utils/constants";
+import { getDisplayProperty } from "./utils";
 
 const getComputeFn = (display) => {
   switch(display) {
@@ -10,8 +11,8 @@ const getComputeFn = (display) => {
     return computeGridLayout;
   }
 },
-computeLayout = domTree => {
-  return getComputeFn(domTree.display)(domTree);
+computeLayout = (domTree = {}) => {
+  return getComputeFn(getDisplayProperty(domTree))(domTree);
 };
 
 export {
