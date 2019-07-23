@@ -1,40 +1,31 @@
-// let _initTracks = [{
-//     size: 'auto',
-//     start: 1,
-//     end: 2
-//   }, {
-//     size: '1fr',
-//     start: 2,
-//     end: 3
-//   }, {
-//     size: 'auto',
-//     start: 3,
-//     end: 4
-//   }],
-//   _trackItems = [{
-//     start: 1,
-//     end: 2,
-//     size: 30
-//   }, {
-//     start: 2,
-//     end: 3,
-//     size: 30
-//   }];
+const getMultiplierOfFr = size => +size.replace(/fr/, ''),
+  _frSpaceDistributorHelper = (tracks, totalSpaceUsed, containerSize) => {
+    let freeSpace,
+      spacePerFrTrack,
+      eligibleTracks,
+      totalFrTrackRatio = 0;
+      
+    if (!tracks.length) {
+      return;
+    }
 
-// const getUnfreezedTracks = (tracks, start, end) => {
-//   let i,
-//     unfreezeTracks = [];
+    tracks.forEach(track => totalFrTrackRatio += track.multiplier);
 
-//   for (i = start; i < end; i++) {
-//     if (!tracks[i].freeze) {
-//       unfreezeTracks.push(tracks[i]);
-//     }
-//   }
-//   return unfreezeTracks;
-// };
+    freeSpace = containerSize - totalSpaceUsed;
+    spacePerFrTrack = freeSpace / totalFrTrackRatio;
+    
+    eligibleTracks = tracks.filter(track => track.baseSize <= track.multiplier * spacePerFrTrack);
+
+    if (eligibleTracks.length < tracks.length) {
+      tracks.filter(track => track.baseSize > track.multiplier * spacePerFrTrack).forEach(track => totalSpaceUsed += track.baseSize);
+      return _frSpaceDistributorHelper(eligibleTracks, totalSpaceUsed, containerSize);
+    } else {
+      eligibleTracks.forEach(track => track.baseSize = track.multiplier * spacePerFrTrack);
+    }
+  };
 
 class TrackResolver {
-  constructor (tracks = [], items = []) {
+  constructor (tracks = [], items = [], containerSize = 600) {
     this.props = {};
     this._config = {
       frTracks: []
@@ -42,6 +33,7 @@ class TrackResolver {
 
     this.set('tracks', tracks);
     this.set('items', items);
+    this.set('containerSize', containerSize);
 
     return this;
   }
@@ -58,6 +50,10 @@ class TrackResolver {
     return this;
   }
 
+  get (key) {
+    return this.props[key];
+  }
+
   _initTrackSize (_tracks) {
     let tracks = _tracks || this.props.tracks || [],
       config = this._config,
@@ -65,28 +61,35 @@ class TrackResolver {
       i,
       len,
       size,
-      freeze,
+      type,
+      multiplier,
       baseSize,
       growthLimit;
 
+    config.frTracks = [];
+
     for (i = 0, len = tracks.length; i < len; i++) {
       size = tracks[i].size;
-      freeze = false;
 
+      multiplier = 1;
       if (!isNaN(+size)) {
         baseSize = growthLimit = +size;
-        freeze = true;
+        type = 'fixed';
       } else if (size.indexOf('fr') > 0) {
         baseSize = growthLimit = 0;
         config.frTracks.push(i);
+        type = 'flex';
+        multiplier = getMultiplierOfFr(size);
       } else {
         baseSize = 0;
         growthLimit = Infinity;
+        type = 'intrinsic';
       }
 
       trackAr.push({
         size,
-        freeze,
+        type,
+        multiplier,
         baseSize,
         growthLimit
       });
@@ -117,6 +120,14 @@ class TrackResolver {
     return (this._config.sanitizedItems = sanitizedItems);
   }
 
+  resolveTracks () {
+    this._placeNonSpanningItems()
+      ._placeSpanningItems()
+      ._distributeFreeSpace();
+
+    return this._config.sanitizedTracks;
+  }
+
   _placeNonSpanningItems () {
     let { sanitizedItems, sanitizedTracks } = this._config,
       nonSpanningItems = sanitizedItems.filter(item => (item.end - item.start) === 1),
@@ -127,17 +138,34 @@ class TrackResolver {
       trackIndex = item.start - 1;
       track = sanitizedTracks[trackIndex];
 
-      if (!track.freeze) {
+      if (track.type !== 'fixed') {
         track.baseSize = Math.max(track.baseSize, item.size);
         track.growthLimit = Math.max(track.growthLimit, track.baseSize);
       }
     });
-  }
-  resolveTracks () {
-    this._placeNonSpanningItems();
 
-    // console.log(this._config.sanitizedTracks);
-    return this._config.sanitizedTracks;
+    return this;
+  }
+
+  _placeSpanningItems () {
+    return this;
+  }
+
+  _distributeFreeSpace () {
+    let { frTracks, sanitizedTracks } = this._config,
+      { containerSize } = this.props,
+      totalSpaceUsed = 0;
+
+    sanitizedTracks.forEach(track => totalSpaceUsed += track.baseSize);
+
+    if (totalSpaceUsed < containerSize) {
+      if (frTracks.length) {
+        frTracks.forEach((trackId, index) => {frTracks[index] = sanitizedTracks[trackId];});
+        frTracks.forEach(track => totalSpaceUsed -= track.baseSize);
+        _frSpaceDistributorHelper(frTracks, totalSpaceUsed, containerSize);
+      }
+    }
+    return this;
   }
 }
 
