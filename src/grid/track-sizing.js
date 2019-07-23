@@ -140,4 +140,5 @@ class TrackResolver {
     return this._config.sanitizedTracks;
   }
 }
+
 export default TrackResolver;
