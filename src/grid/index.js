@@ -1,12 +1,12 @@
 import { getDisplayProperty } from "../utils";
 import { computeLayout } from "../mason";
+import tsa from "./track-sizing";
 
 const computeGridLayout = (domTree) => {
   const gridMatrix = [],
     styles = domTree.style || {},
     children = domTree.children || [],
     { templateRows, templateColumns } = styles,
-    tsa = () => { },
     withinBounds = (rowStart, rowEnd, colStart, colEnd) => {
       return rowStart >= 0
         && rowStart < templateRows.length
@@ -18,9 +18,9 @@ const computeGridLayout = (domTree) => {
         && colEnd < templateColumns.length;
     },
     inflateGridCells = () => {
-      const rowsWithSize = tsa(templateRows),
+      const rowsWithSize = tsa.resolveTracks(templateRows),
         // TODO: repeat if sizes were changed
-        columnsWithSize = tsa(templateColumns);
+        columnsWithSize = tsa.resolveTracks(templateColumns);
 
       let i;
       for (i = 0; i < rowsWithSize.length; i++) {

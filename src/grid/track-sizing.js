@@ -140,4 +140,9 @@ class TrackResolver {
     return this._config.sanitizedTracks;
   }
 }
-export default TrackResolver;
+
+function tsa (tracks = [], items = []) {
+  return this.resolver || (this.resolver = new TrackResolver(tracks, items));
+}
+
+export default tsa;
