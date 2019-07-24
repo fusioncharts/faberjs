@@ -22,13 +22,27 @@ const getMultiplierOfFr = size => +size.replace(/fr/, ''),
     } else {
       eligibleTracks.forEach(track => track.baseSize = track.multiplier * spacePerFrTrack);
     }
+  },
+  _intrinsicSpaceDistributorHelper = (tracks, totalSpaceUsed, containerSize) => {
+    let freeSpace,
+      spacePerIntrinsicTrack;
+
+    if (!tracks.length) {
+      return;
+    }
+
+    freeSpace = containerSize - totalSpaceUsed;
+    spacePerIntrinsicTrack = freeSpace / tracks.length;
+
+    tracks.forEach(track => track.baseSize += spacePerIntrinsicTrack);
   };
 
 class TrackResolver {
   constructor (tracks = [], items = [], containerSize = 600) {
     this.props = {};
     this._config = {
-      frTracks: []
+      frTracks: [],
+      intrinsicTracks: []
     };
 
     this.set('tracks', tracks);
@@ -67,6 +81,7 @@ class TrackResolver {
       growthLimit;
 
     config.frTracks = [];
+    config.intrinsicTracks = [];
 
     for (i = 0, len = tracks.length; i < len; i++) {
       size = tracks[i].size;
@@ -84,6 +99,7 @@ class TrackResolver {
         baseSize = 0;
         growthLimit = Infinity;
         type = 'intrinsic';
+        config.intrinsicTracks.push(i);
       }
 
       trackAr.push({
@@ -101,11 +117,16 @@ class TrackResolver {
   _initItems (_items) {
     let items = _items || this.props.items || [],
       sanitizedItems = [],
+      item,
       i,
       len;
 
     for (i = 0, len = items.length; i < len; i++) {
       sanitizedItems.push({...items[i]});
+
+      item = sanitizedItems[i];
+
+      item.size = isNaN(item.size) ? this._getParentSize(item) : +item.size;
     }
 
     sanitizedItems.sort(function (a, b) {
@@ -118,6 +139,18 @@ class TrackResolver {
     });
 
     return (this._config.sanitizedItems = sanitizedItems);
+  }
+
+  _getParentSize (item) {
+    let { sanitizedTracks } = this._config,
+      parentTracks,
+      widthOfParentTracks = 0;
+
+    parentTracks = sanitizedTracks.filter(track => (track.start >= item.start && track.end <= item.end));
+
+    parentTracks.forEach(track => widthOfParentTracks += track.baseSize);
+
+    return (widthOfParentTracks || 0);
   }
 
   resolveTracks () {
@@ -152,7 +185,7 @@ class TrackResolver {
   }
 
   _distributeFreeSpace () {
-    let { frTracks, sanitizedTracks } = this._config,
+    let { frTracks, intrinsicTracks, sanitizedTracks } = this._config,
       { containerSize } = this.props,
       totalSpaceUsed = 0;
 
@@ -163,6 +196,9 @@ class TrackResolver {
         frTracks.forEach((trackId, index) => {frTracks[index] = sanitizedTracks[trackId];});
         frTracks.forEach(track => totalSpaceUsed -= track.baseSize);
         _frSpaceDistributorHelper(frTracks, totalSpaceUsed, containerSize);
+      } else if (intrinsicTracks.length) {
+        intrinsicTracks.forEach((trackId, index) => {intrinsicTracks[index] = sanitizedTracks[trackId];});
+        _intrinsicSpaceDistributorHelper(intrinsicTracks, totalSpaceUsed, containerSize);
       }
     }
     return this;
