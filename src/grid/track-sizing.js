@@ -117,11 +117,16 @@ class TrackResolver {
   _initItems (_items) {
     let items = _items || this.props.items || [],
       sanitizedItems = [],
+      item,
       i,
       len;
 
     for (i = 0, len = items.length; i < len; i++) {
       sanitizedItems.push({...items[i]});
+
+      item = sanitizedItems[i];
+
+      item.size = isNaN(item.size) ? this._getParentSize(item) : +item.size;
     }
 
     sanitizedItems.sort(function (a, b) {
@@ -134,6 +139,18 @@ class TrackResolver {
     });
 
     return (this._config.sanitizedItems = sanitizedItems);
+  }
+
+  _getParentSize (item) {
+    let { sanitizedTracks } = this._config,
+      parentTracks,
+      widthOfParentTracks = 0;
+
+    parentTracks = sanitizedTracks.filter(track => (track.start >= item.start && track.end <= item.end));
+
+    parentTracks.forEach(track => widthOfParentTracks += track.baseSize);
+
+    return (widthOfParentTracks || 0);
   }
 
   resolveTracks () {
