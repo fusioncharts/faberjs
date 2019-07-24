@@ -103,7 +103,7 @@ class TrackResolver {
       }
 
       trackAr.push({
-        size,
+        ...tracks[i],
         type,
         multiplier,
         baseSize,

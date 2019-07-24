@@ -7,9 +7,7 @@ const computeGridLayout = (domTree) => {
     styles = domTree.style || {},
     children = domTree.children || [],
     { templateRows, templateColumns, width, height } = styles,
-    parseTemplete = (template) => template.map(size => ({ size })),
-    formattedRows = parseTemplete(templateRows),
-    formattedColumns = parseTemplete(templateColumns),
+    parseTemplete = (template) => template.map((size, index) => ({ size, start: index + 1, end: index + 2 })),
     tsa = new TrackResolver(),
     withinBounds = (rowStart, rowEnd, colStart, colEnd) => {
       return rowStart - 1 >= 0
@@ -54,8 +52,8 @@ const computeGridLayout = (domTree) => {
       let i;
       for (i = 0; i < formattedRows.length; i++) {
         gridMatrix.push(formattedColumns.map(c => ({
-          columnSize: c.size,
-          rowSize: formattedRows[i].size
+          columnSize: +c.size,
+          rowSize: +formattedRows[i].size
         })));
       }
     },
@@ -79,14 +77,16 @@ const computeGridLayout = (domTree) => {
         j;
 
       columnsWithSize = tsa.set('tracks', formattedColumns)
-        .set('items', children.map(c => ({ start: c.gridColumnStart, end: c.gridColumnEnd })))
+        .set('items', children.map(c => ({ start: c.style.gridColumnStart, end: c.style.gridColumnEnd, size: c.style.width })))
         .set('containerSize', height)
         .resolveTracks();
+      formattedColumns = columnsWithSize;
 
       rowsWithSize = tsa.set('tracks', formattedRows)
-        .set('items', children.map(r => ({ start: r.gridRowStart, end: r.gridRowEnd })))
+        .set('items', children.map(r => ({ start: r.style.gridRowStart, end: r.style.gridRowEnd, size: r.style.height })))
         .set('containerSize', width)
         .resolveTracks();
+      formattedRows = rowsWithSize;
 
       for (i = 0; i < rowsWithSize.length; i++) {
         for (j = 0; j < rowsWithSize.length; j++) {
@@ -96,10 +96,15 @@ const computeGridLayout = (domTree) => {
       }
     };
 
-  // if (getDisplayProperty(domTree)) {
-  //   //TODO: fix me
-  //   return computeLayout(domTree);
-  // }
+  let i,
+    formattedRows = parseTemplete(templateRows),
+    formattedColumns = parseTemplete(templateColumns);
+    
+  for (i = 0; i < children.length; i++) {
+    if (getDisplayProperty(children[i])) {
+      children[i] = computeLayout(children[i]);
+    }
+  }
 
   // Create the grid matrix
   createGridMatrix();
@@ -107,11 +112,12 @@ const computeGridLayout = (domTree) => {
   placeChildrenInGrid();
   // Size the rows and tracks
   inflateGridCells();
+  // Calling this second time to ensure that if some item's min-content-contribution has changed
+  inflateGridCells();
   // Adds x,y coordinates to each cell depending on position and dimensions
   addCoordinatesToCells();
 
-  // console.log(gridMatrix);
-  // console.log(children);
+  return domTree;
 };
 
 export default computeGridLayout;
