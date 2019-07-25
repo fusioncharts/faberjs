@@ -1,7 +1,7 @@
-import { getDisplayProperty, centerify, endify } from "../utils";
+import { getDisplayProperty } from "../utils";
 import { computeLayoutHelper } from "../mason";
 import TrackResolver from "./track-sizing";
-import { JUSTIFY_ALIGN_CENTER, JUSTIFY_ALIGN_END } from "../utils/constants";
+import { CENTER, END, STRETCH } from "../utils/constants";
 
 const validSizes = ['auto'];
 class Grid {
@@ -186,8 +186,13 @@ class Grid {
       item,
       len,
       i,
-      containerStyles = domTree.style,
-      alignedBounds = {},
+      { justifyItems, alignItems } = domTree.style,
+      trackWidth,
+      trackHeight,
+      width,
+      height,
+      x,
+      y,
       rowTrackdp = [0],
       colTrackdp = [0];
 
@@ -199,47 +204,48 @@ class Grid {
       colTrackdp[i] = colTrackdp[i - 1] + colTracks[i].calculatedStyle.baseSize;
     }
     domTree.layout = {
-      width: isNaN(domTree.width) ? colTrackdp[colTrackdp.length - 1] : domTree.width,
-      height: isNaN(domTree.height) ? rowTrackdp[rowTrackdp.length - 1] : domTree.height
+      width: isNaN(domTree.style.width) ? colTrackdp[colTrackdp.length - 1] : domTree.style.width,
+      height: isNaN(domTree.style.height) ? rowTrackdp[rowTrackdp.length - 1] : domTree.style.height
     };
     domTree.children.forEach((child, index) => {
       item = sanitizedItems[index];
+      trackWidth = colTrackdp[item.colEnd - 1] - colTrackdp[item.colStart - 1];
+      trackHeight = rowTrackdp[item.rowEnd - 1] - rowTrackdp[item.rowStart - 1];
+      
+      width = isNaN(+child.style.width) ? trackWidth : +child.style.width;
+      height = isNaN(+child.style.height) ? trackHeight : +child.style.height;
+
+      switch (justifyItems || child.style.justifySelf) {
+      case CENTER:
+        x = colTrackdp[item.colStart - 1] + (trackWidth / 2) - (width / 2); break;
+      case END:
+        x = colTrackdp[item.colEnd - 1] - width; break;
+      case STRETCH:
+        width = trackWidth;
+        x = colTrackdp[item.colStart - 1]; break;
+      default:
+        x = colTrackdp[item.colStart - 1];
+      }
+
+      switch (alignItems || child.style.alignSelf) {
+      case CENTER:
+        y = rowTrackdp[item.rowStart - 1] + (trackHeight / 2) - (height / 2); break;
+      case END:
+        y = rowTrackdp[item.rowEnd - 1] - height; break;
+      case STRETCH:
+        height = trackHeight;
+        y = rowTrackdp[item.rowStart - 1]; break;
+      default:
+        y = rowTrackdp[item.rowStart - 1];
+      }
       child.layout = {
-        x: colTrackdp[item.colStart - 1],
-        y: rowTrackdp[item.rowStart - 1],
-        x2: colTrackdp[item.colEnd - 1],
-        y2: rowTrackdp[item.rowEnd - 1],
-        width: child.style.width,
-        height: child.style.height
+        x,
+        y,
+        x2: x + width,
+        y2: y + height,
+        width,
+        height
       };
-      if (containerStyles.justifyItems === JUSTIFY_ALIGN_CENTER || child.style.justifySelf == JUSTIFY_ALIGN_CENTER) {
-        if (!Number.isNaN(child.style.width)) {
-          alignedBounds = centerify(cell.startX, cell.endX, child.layout.startX, child.layout.width);
-          child.layout.startX = alignedBounds.start;
-          child.layout.endX = alignedBounds.end;
-        }
-      }
-      if (containerStyles.alignItems === JUSTIFY_ALIGN_CENTER || child.style.alignSelf == JUSTIFY_ALIGN_CENTER) {
-        if (!Number.isNaN(child.style.height)) {
-          alignedBounds = centerify(cell.startY, cell.endY, cell.startY, child.layout.height);
-          child.layout.startY = alignedBounds.start;
-          child.layout.endY = alignedBounds.end;
-        }
-      }
-      if (containerStyles.justifyItems === JUSTIFY_ALIGN_END || child.style.justifySelf == JUSTIFY_ALIGN_END) {
-        if (!Number.isNaN(child.style.width)) {
-          alignedBounds = endify(cell.startX, cell.endX, child.layout.startX, child.layout.width);
-          child.layout.startX = alignedBounds.start;
-          child.layout.endX = alignedBounds.end;
-        }
-      }
-      if (containerStyles.alignItems === JUSTIFY_ALIGN_END || child.style.alignSelf == JUSTIFY_ALIGN_END) {
-        if (!Number.isNaN(child.style.height)) {
-          alignedBounds = endify(cell.startY, cell.endY, cell.startY, child.layout.height);
-          child.layout.startY = alignedBounds.start;
-          child.layout.endY = alignedBounds.end;
-        }
-      }
     });
   }
 }

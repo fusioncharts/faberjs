@@ -331,8 +331,15 @@ function () {
           item,
           len,
           i,
-          containerStyles = domTree.style,
-          alignedBounds = {},
+          _domTree$style = domTree.style,
+          justifyItems = _domTree$style.justifyItems,
+          alignItems = _domTree$style.alignItems,
+          trackWidth,
+          trackHeight,
+          width,
+          height,
+          x,
+          y,
           rowTrackdp = [0],
           colTrackdp = [0];
 
@@ -345,51 +352,60 @@ function () {
       }
 
       domTree.layout = {
-        width: isNaN(domTree.width) ? colTrackdp[colTrackdp.length - 1] : domTree.width,
-        height: isNaN(domTree.height) ? rowTrackdp[rowTrackdp.length - 1] : domTree.height
+        width: isNaN(domTree.style.width) ? colTrackdp[colTrackdp.length - 1] : domTree.style.width,
+        height: isNaN(domTree.style.height) ? rowTrackdp[rowTrackdp.length - 1] : domTree.style.height
       };
       domTree.children.forEach(function (child, index) {
         item = sanitizedItems[index];
+        trackWidth = colTrackdp[item.colEnd - 1] - colTrackdp[item.colStart - 1];
+        trackHeight = rowTrackdp[item.rowEnd - 1] - rowTrackdp[item.rowStart - 1];
+        width = isNaN(+child.style.width) ? trackWidth : +child.style.width;
+        height = isNaN(+child.style.height) ? trackHeight : +child.style.height;
+
+        switch (justifyItems || child.style.justifySelf) {
+          case _utils_constants__WEBPACK_IMPORTED_MODULE_3__["CENTER"]:
+            x = colTrackdp[item.colStart - 1] + trackWidth / 2 - width / 2;
+            break;
+
+          case _utils_constants__WEBPACK_IMPORTED_MODULE_3__["END"]:
+            x = colTrackdp[item.colEnd - 1] - width;
+            break;
+
+          case _utils_constants__WEBPACK_IMPORTED_MODULE_3__["STRETCH"]:
+            width = trackWidth;
+            x = colTrackdp[item.colStart - 1];
+            break;
+
+          default:
+            x = colTrackdp[item.colStart - 1];
+        }
+
+        switch (alignItems || child.style.alignSelf) {
+          case _utils_constants__WEBPACK_IMPORTED_MODULE_3__["CENTER"]:
+            y = rowTrackdp[item.rowStart - 1] + trackHeight / 2 - height / 2;
+            break;
+
+          case _utils_constants__WEBPACK_IMPORTED_MODULE_3__["END"]:
+            y = rowTrackdp[item.rowEnd - 1] - height;
+            break;
+
+          case _utils_constants__WEBPACK_IMPORTED_MODULE_3__["STRETCH"]:
+            height = trackHeight;
+            y = rowTrackdp[item.rowStart - 1];
+            break;
+
+          default:
+            y = rowTrackdp[item.rowStart - 1];
+        }
+
         child.layout = {
-          x: colTrackdp[item.colStart - 1],
-          y: rowTrackdp[item.rowStart - 1],
-          x2: colTrackdp[item.colEnd - 1],
-          y2: rowTrackdp[item.rowEnd - 1],
-          width: child.style.width,
-          height: child.style.height
+          x: x,
+          y: y,
+          x2: x + width,
+          y2: y + height,
+          width: width,
+          height: height
         };
-
-        if (containerStyles.justifyItems === _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_CENTER"] || child.style.justifySelf == _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_CENTER"]) {
-          if (!Number.isNaN(child.style.width)) {
-            alignedBounds = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["centerify"])(cell.startX, cell.endX, child.layout.startX, child.layout.width);
-            child.layout.startX = alignedBounds.start;
-            child.layout.endX = alignedBounds.end;
-          }
-        }
-
-        if (containerStyles.alignItems === _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_CENTER"] || child.style.alignSelf == _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_CENTER"]) {
-          if (!Number.isNaN(child.style.height)) {
-            alignedBounds = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["centerify"])(cell.startY, cell.endY, cell.startY, child.layout.height);
-            child.layout.startY = alignedBounds.start;
-            child.layout.endY = alignedBounds.end;
-          }
-        }
-
-        if (containerStyles.justifyItems === _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_END"] || child.style.justifySelf == _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_END"]) {
-          if (!Number.isNaN(child.style.width)) {
-            alignedBounds = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["endify"])(cell.startX, cell.endX, child.layout.startX, child.layout.width);
-            child.layout.startX = alignedBounds.start;
-            child.layout.endX = alignedBounds.end;
-          }
-        }
-
-        if (containerStyles.alignItems === _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_END"] || child.style.alignSelf == _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_END"]) {
-          if (!Number.isNaN(child.style.height)) {
-            alignedBounds = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["endify"])(cell.startY, cell.endY, cell.startY, child.layout.height);
-            child.layout.startY = alignedBounds.start;
-            child.layout.endY = alignedBounds.end;
-          }
-        }
       });
     }
   }]);
@@ -859,21 +875,23 @@ var getComputeFn = function getComputeFn(display) {
 /*!********************************!*\
   !*** ./src/utils/constants.js ***!
   \********************************/
-/*! exports provided: DISPLAY_GRID, DISPLAY_FLEX, JUSTIFY_ALIGN_CENTER, JUSTIFY_ALIGN_START, JUSTIFY_ALIGN_END */
+/*! exports provided: DISPLAY_GRID, DISPLAY_FLEX, CENTER, START, END, STRETCH */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DISPLAY_GRID", function() { return DISPLAY_GRID; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DISPLAY_FLEX", function() { return DISPLAY_FLEX; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JUSTIFY_ALIGN_CENTER", function() { return JUSTIFY_ALIGN_CENTER; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JUSTIFY_ALIGN_START", function() { return JUSTIFY_ALIGN_START; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JUSTIFY_ALIGN_END", function() { return JUSTIFY_ALIGN_END; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CENTER", function() { return CENTER; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "START", function() { return START; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "END", function() { return END; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "STRETCH", function() { return STRETCH; });
 var DISPLAY_GRID = 'grid';
 var DISPLAY_FLEX = 'flex';
-var JUSTIFY_ALIGN_CENTER = 'center';
-var JUSTIFY_ALIGN_START = 'start';
-var JUSTIFY_ALIGN_END = 'end';
+var CENTER = 'center';
+var START = 'start';
+var END = 'end';
+var STRETCH = 'stretch';
 
 /***/ }),
 

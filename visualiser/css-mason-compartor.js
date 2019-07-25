@@ -2,26 +2,25 @@
 const chart = {
   style: {
     display: 'grid',
-    width: 300,
-    height: 300,
-    // justifyItems: 'end',
+    width: 700,
+    height: 400,
     justifyItems: 'center',
-    alignItems: 'center',
-    templateRows: ['50', '1fr', '100'],
+    // gridTemplateRows: ['50', '1fr', '100'],
+    gridTemplateRows: '[one] auto [two] auto [three]',
     templateRowsHTML: ['50px', '1fr', '100px'],
-    templateColumns: ['50', '1fr', '100'],
+    // gridTemplateColumns: ['50', '1fr', '100'],
+    gridTemplateColumns: '[one] auto [two] auto [three] auto [four]',
     templateColumnsHTML: ['50px', '1fr', '100px']
   },
   children: [
     {
       style: {
-        width: 10,
-        height: 10,
-        // justifySelf: 'center',
-        gridRowStart: 1,
-        gridRowEnd: 2,
-        gridColumnStart: 1,
-        gridColumnEnd: 2
+        width: 100,
+        height: 'auto',
+        gridRowStart: 'one',
+        gridRowEnd: 'two',
+        gridColumnStart: 'one',
+        gridColumnEnd: 'two'
       }
     },
     {
@@ -29,9 +28,9 @@ const chart = {
         width: 'auto',
         height: 'auto',
         display: 'grid',
-        templateRows: ['50'],
+        gridTemplateRows: '50',
         templateRowsHTML: ['50px'],
-        templateColumns: ['auto', 'auto'],
+        gridTemplateColumns: 'auto auto',
         templateColumnsHTML: ['50px', '100px'],
         gridRowStart: 1,
         gridRowEnd: 2,
@@ -63,79 +62,79 @@ const chart = {
     },
     {
       style: {
-        width: 100,
-        height: 50,
-        gridRowStart: 1,
-        gridRowEnd: 2,
-        gridColumnStart: 3,
-        gridColumnEnd: 4
-      }
-    },
-    {
-      style: {
-        width: 50,
-        height: 150,
-        gridRowStart: 2,
-        gridRowEnd: 3,
-        gridColumnStart: 1,
-        gridColumnEnd: 2
-      }
-    },
-    {
-      style: {
-        width: 150,
-        height: 150,
-        gridRowStart: 2,
-        gridRowEnd: 3,
-        gridColumnStart: 2,
-        gridColumnEnd: 3
-      }
-    },
-    {
-      style: {
-        width: 100,
-        height: 150,
-        gridRowStart: 2,
-        gridRowEnd: 3,
-        gridColumnStart: 3,
-        gridColumnEnd: 4
-      }
-    },
-    {
-      style: {
-        width: 50,
-        height: 100,
-        gridRowStart: 3,
-        gridRowEnd: 4,
-        gridColumnStart: 1,
-        gridColumnEnd: 2
-      }
-    },
-    {
-      style: {
-        width: 150,
-        height: 100,
-        gridRowStart: 3,
-        gridRowEnd: 4,
-        gridColumnStart: 2,
-        gridColumnEnd: 3
-      }
-    },
-    {
-      style: {
         width: 'auto',
-        height: 'auto',
-        gridRowStart: 3,
-        gridRowEnd: 4,
+        height: 50,
+        gridRowStart: 2,
+        gridRowEnd: 'three',
         gridColumnStart: 3,
         gridColumnEnd: 4
       }
-    }
+    },
+    // {
+    //   style: {
+    //     width: 50,
+    //     height: 150,
+    //     gridRowStart: 2,
+    //     gridRowEnd: 3,
+    //     gridColumnStart: 1,
+    //     gridColumnEnd: 2
+    //   }
+    // },
+    // {
+    //   style: {
+    //     width: 150,
+    //     height: 150,
+    //     gridRowStart: 2,
+    //     gridRowEnd: 3,
+    //     gridColumnStart: 2,
+    //     gridColumnEnd: 3
+    //   }
+    // },
+    // {
+    //   style: {
+    //     width: 100,
+    //     height: 150,
+    //     gridRowStart: 2,
+    //     gridRowEnd: 3,
+    //     gridColumnStart: 3,
+    //     gridColumnEnd: 4
+    //   }
+    // },
+    // {
+    //   style: {
+    //     width: 50,
+    //     height: 100,
+    //     gridRowStart: 3,
+    //     gridRowEnd: 4,
+    //     gridColumnStart: 1,
+    //     gridColumnEnd: 2
+    //   }
+    // },
+    // {
+    //   style: {
+    //     width: 150,
+    //     height: 100,
+    //     gridRowStart: 3,
+    //     gridRowEnd: 4,
+    //     gridColumnStart: 2,
+    //     gridColumnEnd: 3
+    //   }
+    // },
+    // {
+    //   style: {
+    //     width: 'auto',
+    //     height: 'auto',
+    //     gridRowStart: 3,
+    //     gridRowEnd: 4,
+    //     gridColumnStart: 3,
+    //     gridColumnEnd: 4
+    //   }
+    // }
   ],
 };
 
-Mason.computeLayout(chart);
-console.log(chart);
+// Mason.computeLayout(chart);
+console.log(Mason.computeLayout(chart));
 
 function getHTMLCSSInlined () {
   const htmlContainerEl = document.getElementsByClassName('html')[0];
