@@ -5,5 +5,5 @@ coverage/
 package-lock.json
 
 npm-debug.log*
-dist/main.js
+dist/*
 dist/main.js.map
