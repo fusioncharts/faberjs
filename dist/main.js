@@ -123,111 +123,6 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 
 
- // const parseTemplete = (template) => template.map((size, index) => ({ size, start: index + 1, end: index + 2 })),
-//   withinBounds = (rowStart, rowEnd, colStart, colEnd, templateRows, templateColumns) => {
-//     return rowStart - 1 >= 0
-//       && rowStart - 1 < templateRows.length
-//       && rowEnd - 2 >= 0
-//       && rowEnd - 2 < templateRows.length
-//       && colStart - 1 >= 0
-//       && colStart - 1 < templateColumns.length
-//       && colEnd - 2 >= 0
-//       && colEnd - 2 < templateColumns.length;
-//   },
-//   addCoordinatesToCells = (gridMatrix, children) => {
-//     let i, j, item, usedX = 0, usedY = 0, cell = {};
-//     for (i = 0; i < gridMatrix.length; i++) {
-//       usedX = 0;
-//       // usedY = null;
-//       for (j = 0; j < gridMatrix[i].length; j++) {
-//         item = gridMatrix[i][j];
-//         item.startX = usedX;
-//         item.endX = usedX + item.columnSize;
-//         usedX = item.endX;
-//         item.startY = usedY;
-//         item.endY = usedY + item.rowSize;
-//         if (j == gridMatrix[i].length - 1) {
-//           usedY = usedY + item.rowSize;
-//         }
-//       }
-//     }
-//     children.forEach(child => {
-//       cell = gridMatrix[child.matrixPosition.row][child.matrixPosition.column];
-//       child.layout = {};
-//       child.layout.width = child.style.width;
-//       child.layout.height = child.style.height;
-//       child.layout.startX = cell.startX;
-//       child.layout.startY = cell.startY;
-//       child.layout.endX = cell.endX;
-//       child.layout.endY = cell.endY;
-//     });
-//   },
-//   placeChildrenInGrid = (children, gridMatrix, templateRows, templateColumns) => {
-//     children.forEach(child => {
-//       const { gridRowStart, gridRowEnd, gridColumnStart, gridColumnEnd } = child.style;
-//       if (withinBounds(gridRowStart, gridRowEnd, gridColumnStart, gridColumnEnd, templateRows, templateColumns)) {
-//         gridMatrix[gridRowStart - 1][gridColumnStart - 1].item = child;
-//         child.matrixPosition = {
-//           row: gridRowStart - 1,
-//           column: gridColumnStart - 1
-//         };
-//         // TODO:  consider spanning items
-//       }
-//     });
-//   },
-//   inflateGridCells = (tsa, children, columns, rows, containerHeight, containerWidth, gridMatrix) => {
-//     let i,
-//       j;
-//     columns = tsa.set('tracks', columns)
-//       .set('items', children.map(c => ({ start: c.style.gridColumnStart, end: c.style.gridColumnEnd, size: c.style.width })))
-//       .set('containerSize', containerHeight)
-//       .resolveTracks();
-//     rows = tsa.set('tracks', rows)
-//       .set('items', children.map(r => ({ start: r.style.gridRowStart, end: r.style.gridRowEnd, size: r.style.height })))
-//       .set('containerSize', containerWidth)
-//       .resolveTracks();
-//     for (i = 0; i < rows.length; i++) {
-//       for (j = 0; j < rows.length; j++) {
-//         gridMatrix[i][j].rowSize = rows[i].baseSize;
-//         gridMatrix[i][j].columnSize = columns[j].baseSize;
-//       }
-//     }
-//   },
-//   _computeGridLayout = (domTree) => {
-//     const gridMatrix = [],
-//       styles = domTree.style || {},
-//       children = domTree.children || [],
-//       { templateRows, templateColumns, width, height } = styles,
-//       tsa = new TrackResolver(),
-//       createGridMatrix = () => {
-//         let i;
-//         for (i = 0; i < formattedRows.length; i++) {
-//           gridMatrix.push(formattedColumns.map(c => ({
-//             columnSize: +c.size,
-//             rowSize: +formattedRows[i].size
-//           })));
-//         }
-//       };
-//     let i,
-//       formattedRows = parseTemplete(templateRows),
-//       formattedColumns = parseTemplete(templateColumns);
-//     for (i = 0; i < children.length; i++) {
-//       if (getDisplayProperty(children[i])) {
-//         children[i] = computeLayout(children[i]);
-//       }
-//     }
-//     // Create the grid matrix
-//     createGridMatrix();
-//     // Allocate children to grid matrix
-//     placeChildrenInGrid(children, gridMatrix, templateRows, templateColumns);
-//     // Size the rows and tracks
-//     inflateGridCells(tsa, children, formattedColumns, formattedRows, height, width, gridMatrix);
-//     // Calling this second time to ensure that if some item's min-content-contribution has changed
-//     inflateGridCells(tsa, children, formattedColumns, formattedRows, height, width, gridMatrix);
-//     // Adds x,y coordinates to each cell depending on position and dimensions
-//     addCoordinatesToCells(gridMatrix, children);
-//     return domTree;
-//   };
 
 var validSizes = ['auto'];
 
@@ -257,24 +152,21 @@ function () {
       return this;
     }
   }, {
+    key: "getProps",
+    value: function getProps(key) {
+      return this.props[key];
+    }
+  }, {
+    key: "getConfig",
+    value: function getConfig(key) {
+      return this._config[key];
+    }
+  }, {
     key: "compute",
     value: function compute(_domTree) {
       var domTree = _domTree || this.props.domTree;
 
-      this._clearLayoutOfChildren(domTree)._sanitizeTracks(domTree)._sanitizeItems(domTree)._inflateTracks()._assignCoordinatesToCells(domTree);
-    }
-  }, {
-    key: "_clearLayoutOfChildren",
-    value: function _clearLayoutOfChildren(_domTree) {
-      var domTree = _domTree || this.props.domTree;
-
-      if (domTree.children && domTree.children.length) {
-        domTree.children.forEach(function (child) {
-          return delete child.layout;
-        });
-      }
-
-      return this;
+      this._sanitizeTracks(domTree)._sanitizeItems(domTree)._inflateTracks()._assignCoordinatesToCells(domTree);
     }
   }, {
     key: "_sanitizeTracks",
@@ -402,9 +294,7 @@ function () {
           colTracks = _this$_config.colTracks,
           rowTracks = _this$_config.rowTracks,
           sizedTracks,
-          _this$props = this.props,
-          parent = _this$props.parent,
-          domTree = _this$props.domTree,
+          domTree = this.props.domTree,
           tsa = new _track_sizing__WEBPACK_IMPORTED_MODULE_2__["default"]();
       sizedTracks = tsa.clear().set('tracks', colTracks).set('items', sanitizedItems.map(function (item) {
         return {
@@ -412,7 +302,7 @@ function () {
           end: item.colEnd,
           size: item.style && item.style.width || 'auto'
         };
-      })).set('containerSize', parent.layout && parent.layout.width || domTree.style && domTree.style.width || 'auto').resolveTracks();
+      })).set('containerSize', domTree.style && domTree.style.width || 'auto').resolveTracks();
       colTracks.forEach(function (track, index) {
         return track.calculatedStyle = sizedTracks[index];
       });
@@ -422,7 +312,7 @@ function () {
           end: item.rowEnd,
           size: item.style && item.style.height || 'auto'
         };
-      })).set('containerSize', parent.layout && parent.layout.height || domTree.style && domTree.style.height || 'auto').resolveTracks();
+      })).set('containerSize', domTree.style && domTree.style.height || 'auto').resolveTracks();
       rowTracks.forEach(function (track, index) {
         return track.calculatedStyle = sizedTracks[index];
       });
@@ -467,34 +357,114 @@ function () {
   }]);
 
   return Grid;
-}(); // const computeGridLayout = (domTree, parent = {}) => {
-//   computeGridLayoutHelper(domTree, parent);
-//   computeGridLayoutHelper(domTree, parent);
-// };
+}();
 
+var replaceWithAbsValue = function replaceWithAbsValue(styleTrack, calculatedTrack) {
+  var trackSplitAr = styleTrack.split(' '),
+      trackWithAbsValue = '',
+      counter = 1;
+  trackSplitAr.forEach(function (track) {
+    if (validSizes.indexOf(track) > -1 || !isNaN(track) || /[0-9]fr/.test(track)) {
+      trackWithAbsValue += calculatedTrack[counter].calculatedStyle.baseSize + ' ';
+      counter++;
+    } else {
+      trackWithAbsValue += track + ' ';
+    }
+  });
+  return trackWithAbsValue.trim();
+},
+    updateDomTreeWithResolvedValues = function updateDomTreeWithResolvedValues(domTree, grid) {
+  var containerStyle = domTree.style,
+      rowTracks = grid.getConfig('rowTracks'),
+      colTracks = grid.getConfig('colTracks'),
+      mapping = grid.getConfig('mapping'),
+      gridTemplateRows = containerStyle.gridTemplateRows,
+      gridTemplateColumns = containerStyle.gridTemplateColumns,
+      child,
+      i,
+      j,
+      len,
+      rowTrackSum,
+      colTrackSum,
+      rowStart,
+      rowEnd,
+      colStart,
+      colEnd;
+  domTree.style.gridTemplateRows = replaceWithAbsValue(gridTemplateRows, rowTracks);
+  domTree.style.gridTemplateColumns = replaceWithAbsValue(gridTemplateColumns, colTracks);
 
-var computeGridLayout = function computeGridLayout(domTree, parent) {
-  var count = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+  for (i = 0, len = domTree.children.length; i < len; i++) {
+    child = domTree.children[i];
+
+    if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(child)) {
+      child.style.gridTemplateColumns = child.userGivenStyles.gridTemplateColumns;
+      child.style.gridTemplateRows = child.userGivenStyles.gridTemplateRows;
+
+      if (isNaN(child.userGivenStyles.width)) {
+        colStart = child.style.gridColumnStart;
+        colEnd = child.style.gridColumnEnd;
+        colStart = mapping.col.nameToLineMap[colStart];
+        colEnd = mapping.col.nameToLineMap[colEnd];
+
+        for (j = colStart, colTrackSum = 0; j < colEnd; j++) {
+          colTrackSum += colTracks[j].calculatedStyle.baseSize;
+        }
+
+        child.style.width = colTrackSum;
+      }
+
+      if (isNaN(child.userGivenStyles.height)) {
+        rowStart = child.style.gridRowStart;
+        rowEnd = child.style.gridRowEnd;
+        rowStart = mapping.row.nameToLineMap[rowStart];
+        rowEnd = mapping.row.nameToLineMap[rowEnd];
+
+        for (j = rowStart, rowTrackSum = 0; j < rowEnd; j++) {
+          rowTrackSum += rowTracks[j].calculatedStyle.baseSize;
+        }
+
+        child.style.height = rowTrackSum;
+      }
+    }
+  }
+
+  return domTree;
+},
+    computeGridLayout = function computeGridLayout(domTree) {
+  var count = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
   var i, len, child, grid;
 
   if (!domTree || !domTree.style) {
     return;
   }
 
+  if (!domTree.userGivenStyles) {
+    domTree.style.width = isNaN(domTree.style.width) ? 'auto' : domTree.style.width;
+    domTree.style.height = isNaN(domTree.style.height) ? 'auto' : domTree.style.height;
+    domTree.userGivenStyles = {
+      gridTemplateColumns: domTree.style.gridTemplateColumns,
+      gridTemplateRows: domTree.style.gridTemplateRows,
+      width: domTree.style.width,
+      height: domTree.style.height
+    };
+  }
+
   for (i = 0, len = domTree.children && domTree.children.length; i < len; i++) {
     child = domTree.children[i];
 
     if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(child)) {
-      Object(_mason__WEBPACK_IMPORTED_MODULE_1__["computeLayout"])(child, domTree);
+      Object(_mason__WEBPACK_IMPORTED_MODULE_1__["computeLayoutHelper"])(child, domTree);
     }
   }
 
   grid = new Grid();
-  grid.set('domTree', domTree).set('parent', parent || {}).compute();
+  grid.set('domTree', domTree).compute();
 
   if (count < 2) {
-    computeGridLayout(domTree, parent, 2);
+    computeGridLayout(updateDomTreeWithResolvedValues(domTree, grid), 2);
   }
+
+  return domTree;
 };
 
 
@@ -807,12 +777,13 @@ __webpack_require__.r(__webpack_exports__);
 /*!**********************!*\
   !*** ./src/mason.js ***!
   \**********************/
-/*! exports provided: computeLayout */
+/*! exports provided: computeLayout, computeLayoutHelper */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "computeLayout", function() { return computeLayout; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "computeLayoutHelper", function() { return computeLayoutHelper; });
 /* harmony import */ var _grid__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./grid */ "./src/grid/index.js");
 /* harmony import */ var _utils_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/constants */ "./src/utils/constants.js");
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils */ "./src/utils/index.js");
@@ -833,10 +804,13 @@ var getComputeFn = function getComputeFn(display) {
       return _grid__WEBPACK_IMPORTED_MODULE_0__["computeGridLayout"];
   }
 },
+    computeLayoutHelper = function computeLayoutHelper(domTree) {
+  return getComputeFn(Object(_utils__WEBPACK_IMPORTED_MODULE_2__["getDisplayProperty"])(domTree))(domTree);
+},
     computeLayout = function computeLayout() {
   var domTree = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  var parent = arguments.length > 1 ? arguments[1] : undefined;
-  return getComputeFn(Object(_utils__WEBPACK_IMPORTED_MODULE_2__["getDisplayProperty"])(domTree))(domTree, parent);
+  var clonedDomTree = Object(_utils__WEBPACK_IMPORTED_MODULE_2__["cloneObject"])(domTree);
+  return computeLayoutHelper(clonedDomTree);
 };
 
 
@@ -863,14 +837,44 @@ var DISPLAY_FLEX = 'flex';
 /*!****************************!*\
   !*** ./src/utils/index.js ***!
   \****************************/
-/*! exports provided: getDisplayProperty */
+/*! exports provided: cloneObject, getDisplayProperty */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cloneObject", function() { return cloneObject; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDisplayProperty", function() { return getDisplayProperty; });
-var getDisplayProperty = function getDisplayProperty(domTree) {
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+var ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'],
+    getDisplayProperty = function getDisplayProperty(domTree) {
   return domTree.style && domTree.style.display;
+},
+    cloneObject = function cloneObject(arg) {
+  if (ATOMIC_DATA_TYPE.indexOf(_typeof(arg)) > -1 || arg === null) {
+    return arg;
+  }
+
+  if (Array.isArray(arg)) {
+    var i,
+        len,
+        arr = [];
+
+    for (i = 0, len = arg.length; i < len; i++) {
+      arr.push(cloneObject(arg[i]));
+    }
+
+    return arr;
+  } else if (_typeof(arg) === 'object') {
+    var cloneObj = {},
+        key;
+
+    for (key in arg) {
+      cloneObj[key] = cloneObject(arg[key]);
+    }
+
+    return cloneObj;
+  }
 };
 
 
