@@ -108,6 +108,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils */ "./src/utils/index.js");
 /* harmony import */ var _mason__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../mason */ "./src/mason.js");
 /* harmony import */ var _track_sizing__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./track-sizing */ "./src/grid/track-sizing.js");
+/* harmony import */ var _utils_constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/constants */ "./src/utils/constants.js");
+
 
 
 
@@ -124,13 +126,14 @@ var parseTemplete = function parseTemplete(template) {
     withinBounds = function withinBounds(rowStart, rowEnd, colStart, colEnd, templateRows, templateColumns) {
   return rowStart - 1 >= 0 && rowStart - 1 < templateRows.length && rowEnd - 2 >= 0 && rowEnd - 2 < templateRows.length && colStart - 1 >= 0 && colStart - 1 < templateColumns.length && colEnd - 2 >= 0 && colEnd - 2 < templateColumns.length;
 },
-    addCoordinatesToCells = function addCoordinatesToCells(gridMatrix, children) {
+    addCoordinatesToCells = function addCoordinatesToCells(gridMatrix, children, containerStyles) {
   var i,
       j,
       item,
       usedX = 0,
       usedY = 0,
-      cell = {};
+      cell = {},
+      alignedBounds = {};
 
   for (i = 0; i < gridMatrix.length; i++) {
     usedX = 0; // usedY = null;
@@ -158,6 +161,38 @@ var parseTemplete = function parseTemplete(template) {
     child.layout.startY = cell.startY;
     child.layout.endX = cell.endX;
     child.layout.endY = cell.endY;
+
+    if (containerStyles.justifyItems === _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_CENTER"] || child.style.justifySelf == _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_CENTER"]) {
+      if (!Number.isNaN(child.style.width)) {
+        alignedBounds = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["centerify"])(cell.startX, cell.endX, child.layout.startX, child.layout.width);
+        child.layout.startX = alignedBounds.start;
+        child.layout.endX = alignedBounds.end;
+      }
+    }
+
+    if (containerStyles.alignItems === _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_CENTER"] || child.style.alignSelf == _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_CENTER"]) {
+      if (!Number.isNaN(child.style.height)) {
+        alignedBounds = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["centerify"])(cell.startY, cell.endY, cell.startY, child.layout.height);
+        child.layout.startY = alignedBounds.start;
+        child.layout.endY = alignedBounds.end;
+      }
+    }
+
+    if (containerStyles.justifyItems === _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_END"] || child.style.justifySelf == _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_END"]) {
+      if (!Number.isNaN(child.style.width)) {
+        alignedBounds = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["endify"])(cell.startX, cell.endX, child.layout.startX, child.layout.width);
+        child.layout.startX = alignedBounds.start;
+        child.layout.endX = alignedBounds.end;
+      }
+    }
+
+    if (containerStyles.alignItems === _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_END"] || child.style.alignSelf == _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_END"]) {
+      if (!Number.isNaN(child.style.height)) {
+        alignedBounds = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["endify"])(cell.startY, cell.endY, cell.startY, child.layout.height);
+        child.layout.startY = alignedBounds.start;
+        child.layout.endY = alignedBounds.end;
+      }
+    }
   });
 },
     placeChildrenInGrid = function placeChildrenInGrid(children, gridMatrix, templateRows, templateColumns) {
@@ -203,12 +238,12 @@ var parseTemplete = function parseTemplete(template) {
 },
     computeGridLayout = function computeGridLayout(domTree) {
   var gridMatrix = [],
-      styles = domTree.style || {},
+      containerStyles = domTree.style || {},
       children = domTree.children || [],
-      templateRows = styles.templateRows,
-      templateColumns = styles.templateColumns,
-      width = styles.width,
-      height = styles.height,
+      templateRows = containerStyles.templateRows,
+      templateColumns = containerStyles.templateColumns,
+      width = containerStyles.width,
+      height = containerStyles.height,
       tsa = new _track_sizing__WEBPACK_IMPORTED_MODULE_2__["default"](),
       createGridMatrix = function createGridMatrix() {
     var i;
@@ -242,7 +277,7 @@ var parseTemplete = function parseTemplete(template) {
 
   inflateGridCells(tsa, children, formattedColumns, formattedRows, height, width, gridMatrix); // Adds x,y coordinates to each cell depending on position and dimensions
 
-  addCoordinatesToCells(gridMatrix, children);
+  addCoordinatesToCells(gridMatrix, children, containerStyles);
   return domTree;
 };
 
@@ -586,15 +621,21 @@ var getComputeFn = function getComputeFn(display) {
 /*!********************************!*\
   !*** ./src/utils/constants.js ***!
   \********************************/
-/*! exports provided: DISPLAY_GRID, DISPLAY_FLEX */
+/*! exports provided: DISPLAY_GRID, DISPLAY_FLEX, JUSTIFY_ALIGN_CENTER, JUSTIFY_ALIGN_START, JUSTIFY_ALIGN_END */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DISPLAY_GRID", function() { return DISPLAY_GRID; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DISPLAY_FLEX", function() { return DISPLAY_FLEX; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JUSTIFY_ALIGN_CENTER", function() { return JUSTIFY_ALIGN_CENTER; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JUSTIFY_ALIGN_START", function() { return JUSTIFY_ALIGN_START; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JUSTIFY_ALIGN_END", function() { return JUSTIFY_ALIGN_END; });
 var DISPLAY_GRID = 'grid';
 var DISPLAY_FLEX = 'flex';
+var JUSTIFY_ALIGN_CENTER = 'center';
+var JUSTIFY_ALIGN_START = 'start';
+var JUSTIFY_ALIGN_END = 'end';
 
 /***/ }),
 
@@ -602,14 +643,38 @@ var DISPLAY_FLEX = 'flex';
 /*!****************************!*\
   !*** ./src/utils/index.js ***!
   \****************************/
-/*! exports provided: getDisplayProperty */
+/*! exports provided: getDisplayProperty, centerify, endify */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDisplayProperty", function() { return getDisplayProperty; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "centerify", function() { return centerify; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "endify", function() { return endify; });
 var getDisplayProperty = function getDisplayProperty(domTree) {
   return domTree.style && domTree.style.display;
+},
+    centerify = function centerify(axisStart, axisEnd, itemStart, itemSize) {
+  var itemFreeSpaceStart = itemStart - axisStart,
+      itemEnd = itemStart + itemSize,
+      itemFreeSpaceEnd = axisEnd - itemEnd,
+      totalFreeSpace = itemFreeSpaceStart + itemFreeSpaceEnd; // Item's revised bounds along block axis
+
+  return {
+    start: axisStart + totalFreeSpace / 2,
+    end: axisEnd - totalFreeSpace / 2
+  };
+},
+    endify = function endify(axisStart, axisEnd, itemStart, itemSize) {
+  var itemFreeSpaceStart = itemStart - axisStart,
+      itemEnd = itemStart + itemSize,
+      itemFreeSpaceEnd = axisEnd - itemEnd,
+      totalFreeSpace = itemFreeSpaceStart + itemFreeSpaceEnd; // Item's revised bounds along block axis
+
+  return {
+    start: axisStart + totalFreeSpace,
+    end: axisStart + totalFreeSpace + itemSize
+  };
 };
 
 
