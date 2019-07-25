@@ -109,6 +109,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils */ "./src/utils/index.js");
 /* harmony import */ var _mason__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../mason */ "./src/mason.js");
 /* harmony import */ var _track_sizing__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./track-sizing */ "./src/grid/track-sizing.js");
+/* harmony import */ var _utils_constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/constants */ "./src/utils/constants.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -120,6 +121,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
 
 
 
@@ -329,6 +331,8 @@ function () {
           item,
           len,
           i,
+          containerStyles = domTree.style,
+          alignedBounds = {},
           rowTrackdp = [0],
           colTrackdp = [0];
 
@@ -350,8 +354,42 @@ function () {
           x: colTrackdp[item.colStart - 1],
           y: rowTrackdp[item.rowStart - 1],
           x2: colTrackdp[item.colEnd - 1],
-          y2: rowTrackdp[item.rowEnd - 1]
+          y2: rowTrackdp[item.rowEnd - 1],
+          width: child.style.width,
+          height: child.style.height
         };
+
+        if (containerStyles.justifyItems === _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_CENTER"] || child.style.justifySelf == _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_CENTER"]) {
+          if (!Number.isNaN(child.style.width)) {
+            alignedBounds = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["centerify"])(cell.startX, cell.endX, child.layout.startX, child.layout.width);
+            child.layout.startX = alignedBounds.start;
+            child.layout.endX = alignedBounds.end;
+          }
+        }
+
+        if (containerStyles.alignItems === _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_CENTER"] || child.style.alignSelf == _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_CENTER"]) {
+          if (!Number.isNaN(child.style.height)) {
+            alignedBounds = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["centerify"])(cell.startY, cell.endY, cell.startY, child.layout.height);
+            child.layout.startY = alignedBounds.start;
+            child.layout.endY = alignedBounds.end;
+          }
+        }
+
+        if (containerStyles.justifyItems === _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_END"] || child.style.justifySelf == _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_END"]) {
+          if (!Number.isNaN(child.style.width)) {
+            alignedBounds = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["endify"])(cell.startX, cell.endX, child.layout.startX, child.layout.width);
+            child.layout.startX = alignedBounds.start;
+            child.layout.endX = alignedBounds.end;
+          }
+        }
+
+        if (containerStyles.alignItems === _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_END"] || child.style.alignSelf == _utils_constants__WEBPACK_IMPORTED_MODULE_3__["JUSTIFY_ALIGN_END"]) {
+          if (!Number.isNaN(child.style.height)) {
+            alignedBounds = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["endify"])(cell.startY, cell.endY, cell.startY, child.layout.height);
+            child.layout.startY = alignedBounds.start;
+            child.layout.endY = alignedBounds.end;
+          }
+        }
       });
     }
   }]);
@@ -821,15 +859,21 @@ var getComputeFn = function getComputeFn(display) {
 /*!********************************!*\
   !*** ./src/utils/constants.js ***!
   \********************************/
-/*! exports provided: DISPLAY_GRID, DISPLAY_FLEX */
+/*! exports provided: DISPLAY_GRID, DISPLAY_FLEX, JUSTIFY_ALIGN_CENTER, JUSTIFY_ALIGN_START, JUSTIFY_ALIGN_END */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DISPLAY_GRID", function() { return DISPLAY_GRID; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DISPLAY_FLEX", function() { return DISPLAY_FLEX; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JUSTIFY_ALIGN_CENTER", function() { return JUSTIFY_ALIGN_CENTER; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JUSTIFY_ALIGN_START", function() { return JUSTIFY_ALIGN_START; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JUSTIFY_ALIGN_END", function() { return JUSTIFY_ALIGN_END; });
 var DISPLAY_GRID = 'grid';
 var DISPLAY_FLEX = 'flex';
+var JUSTIFY_ALIGN_CENTER = 'center';
+var JUSTIFY_ALIGN_START = 'start';
+var JUSTIFY_ALIGN_END = 'end';
 
 /***/ }),
 
@@ -837,13 +881,15 @@ var DISPLAY_FLEX = 'flex';
 /*!****************************!*\
   !*** ./src/utils/index.js ***!
   \****************************/
-/*! exports provided: cloneObject, getDisplayProperty */
+/*! exports provided: cloneObject, getDisplayProperty, centerify, endify */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cloneObject", function() { return cloneObject; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDisplayProperty", function() { return getDisplayProperty; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "centerify", function() { return centerify; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "endify", function() { return endify; });
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 var ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'],
@@ -875,6 +921,28 @@ var ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'],
 
     return cloneObj;
   }
+},
+    centerify = function centerify(axisStart, axisEnd, itemStart, itemSize) {
+  var itemFreeSpaceStart = itemStart - axisStart,
+      itemEnd = itemStart + itemSize,
+      itemFreeSpaceEnd = axisEnd - itemEnd,
+      totalFreeSpace = itemFreeSpaceStart + itemFreeSpaceEnd; // Item's revised bounds along block axis
+
+  return {
+    start: axisStart + totalFreeSpace / 2,
+    end: axisEnd - totalFreeSpace / 2
+  };
+},
+    endify = function endify(axisStart, axisEnd, itemStart, itemSize) {
+  var itemFreeSpaceStart = itemStart - axisStart,
+      itemEnd = itemStart + itemSize,
+      itemFreeSpaceEnd = axisEnd - itemEnd,
+      totalFreeSpace = itemFreeSpaceStart + itemFreeSpaceEnd; // Item's revised bounds along block axis
+
+  return {
+    start: axisStart + totalFreeSpace,
+    end: axisStart + totalFreeSpace + itemSize
+  };
 };
 
 

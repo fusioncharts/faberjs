@@ -1,6 +1,7 @@
-import { getDisplayProperty } from "../utils";
+import { getDisplayProperty, centerify, endify } from "../utils";
 import { computeLayoutHelper } from "../mason";
 import TrackResolver from "./track-sizing";
+import { JUSTIFY_ALIGN_CENTER, JUSTIFY_ALIGN_END } from "../utils/constants";
 
 const validSizes = ['auto'];
 class Grid {
@@ -79,7 +80,7 @@ class Grid {
     nameList = splittedTrackInfo.filter(track => {
       if (typeof track === 'string' && track.length) {
         len = track.length;
-        if (track[0] === '['  && track[len - 1] === ']') {
+        if (track[0] === '[' && track[len - 1] === ']') {
           return true;
         }
         return false;
@@ -133,7 +134,7 @@ class Grid {
 
     for (i = 0, len = items.length; i < len; i++) {
       itemStyle = items[i].style;
-      
+
       sanitizedItems.push({
         ...items[i],
         rowStart: mapping.row.nameToLineMap[itemStyle.gridRowStart],
@@ -163,7 +164,7 @@ class Grid {
       .set('containerSize', (domTree.style && domTree.style.width) || 'auto')
       .resolveTracks();
 
-    colTracks.forEach((track,index) => track.calculatedStyle = sizedTracks[index]);
+    colTracks.forEach((track, index) => track.calculatedStyle = sizedTracks[index]);
 
     sizedTracks = tsa.clear()
       .set('tracks', rowTracks)
@@ -175,7 +176,7 @@ class Grid {
       .set('containerSize', (domTree.style && domTree.style.height) || 'auto')
       .resolveTracks();
 
-    rowTracks.forEach((track,index) => track.calculatedStyle = sizedTracks[index]);
+    rowTracks.forEach((track, index) => track.calculatedStyle = sizedTracks[index]);
     return this;
   }
 
@@ -185,6 +186,8 @@ class Grid {
       item,
       len,
       i,
+      containerStyles = domTree.style,
+      alignedBounds = {},
       rowTrackdp = [0],
       colTrackdp = [0];
 
@@ -205,8 +208,38 @@ class Grid {
         x: colTrackdp[item.colStart - 1],
         y: rowTrackdp[item.rowStart - 1],
         x2: colTrackdp[item.colEnd - 1],
-        y2: rowTrackdp[item.rowEnd - 1]
+        y2: rowTrackdp[item.rowEnd - 1],
+        width: child.style.width,
+        height: child.style.height
       };
+      if (containerStyles.justifyItems === JUSTIFY_ALIGN_CENTER || child.style.justifySelf == JUSTIFY_ALIGN_CENTER) {
+        if (!Number.isNaN(child.style.width)) {
+          alignedBounds = centerify(cell.startX, cell.endX, child.layout.startX, child.layout.width);
+          child.layout.startX = alignedBounds.start;
+          child.layout.endX = alignedBounds.end;
+        }
+      }
+      if (containerStyles.alignItems === JUSTIFY_ALIGN_CENTER || child.style.alignSelf == JUSTIFY_ALIGN_CENTER) {
+        if (!Number.isNaN(child.style.height)) {
+          alignedBounds = centerify(cell.startY, cell.endY, cell.startY, child.layout.height);
+          child.layout.startY = alignedBounds.start;
+          child.layout.endY = alignedBounds.end;
+        }
+      }
+      if (containerStyles.justifyItems === JUSTIFY_ALIGN_END || child.style.justifySelf == JUSTIFY_ALIGN_END) {
+        if (!Number.isNaN(child.style.width)) {
+          alignedBounds = endify(cell.startX, cell.endX, child.layout.startX, child.layout.width);
+          child.layout.startX = alignedBounds.start;
+          child.layout.endX = alignedBounds.end;
+        }
+      }
+      if (containerStyles.alignItems === JUSTIFY_ALIGN_END || child.style.alignSelf == JUSTIFY_ALIGN_END) {
+        if (!Number.isNaN(child.style.height)) {
+          alignedBounds = endify(cell.startY, cell.endY, cell.startY, child.layout.height);
+          child.layout.startY = alignedBounds.start;
+          child.layout.endY = alignedBounds.end;
+        }
+      }
     });
   }
 }
