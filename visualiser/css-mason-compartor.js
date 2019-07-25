@@ -22,13 +22,40 @@ const chart = {
     },
     {
       style: {
-        width: 150,
-        height: 50,
+        width: 'auto',
+        height: 'auto',
+        display: 'grid',
+        templateRows: ['50'],
+        templateRowsHTML: ['50px'],
+        templateColumns: ['auto', 'auto'],
+        templateColumnsHTML: ['50px', '100px'],
         gridRowStart: 1,
         gridRowEnd: 2,
         gridColumnStart: 2,
-        gridColumnEnd: 3
-      }
+        gridColumnEnd: 3,
+      },
+      children: [
+        {
+          style: {
+            width: 'auto',
+            height: 'auto',
+            gridRowStart: 1,
+            gridRowEnd: 2,
+            gridColumnStart: 1,
+            gridColumnEnd: 2
+          }
+        },
+        {
+          style: {
+            width: 'auto',
+            height: 'auto',
+            gridRowStart: 1,
+            gridRowEnd: 2,
+            gridColumnStart: 2,
+            gridColumnEnd: 3
+          }
+        }
+      ]
     },
     {
       style: {
@@ -92,8 +119,8 @@ const chart = {
     },
     {
       style: {
-        width: 100,
-        height: 100,
+        width: 'auto',
+        height: 'auto',
         gridRowStart: 3,
         gridRowEnd: 4,
         gridColumnStart: 3,
@@ -112,7 +139,7 @@ function getHTMLCSSInlined () {
   htmlContainerEl.style.display = 'grid';
   htmlContainerEl.style.gridTemplateColumns = chart.style.templateColumnsHTML.join(" ");
   htmlContainerEl.style.gridTemplateRows = chart.style.templateRowsHTML.join(" ");
-  
+
   masonContainerEl.style.width = chart.style.width;
   masonContainerEl.style.height = chart.style.height;
   masonContainerEl.style.position = 'relative';

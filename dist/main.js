@@ -1,4 +1,14 @@
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else if(typeof exports === 'object')
+		exports["Mason"] = factory();
+	else
+		root["Mason"] = factory();
+})(window, function() {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -94,7 +104,149 @@
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils */ \"./src/utils/index.js\");\n/* harmony import */ var _mason__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../mason */ \"./src/mason.js\");\n/* harmony import */ var _track_sizing__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./track-sizing */ \"./src/grid/track-sizing.js\");\n\n\n\n\nvar computeGridLayout = function computeGridLayout(domTree) {\n  var gridMatrix = [],\n      styles = domTree.style || {},\n      children = domTree.children || [],\n      templateRows = styles.templateRows,\n      templateColumns = styles.templateColumns,\n      tsa = new _track_sizing__WEBPACK_IMPORTED_MODULE_2__[\"default\"](),\n      withinBounds = function withinBounds(rowStart, rowEnd, colStart, colEnd) {\n    return rowStart >= 0 && rowStart < templateRows.length && rowEnd >= 0 && rowEnd < templateRows.length && colStart >= 0 && colStart < templateColumns.length && colEnd >= 0 && colEnd < templateColumns.length;\n  },\n      inflateGridCells = function inflateGridCells() {\n    var rowsWithSize, columnsWithSize, i;\n    tsa.set('tracks', templateRows);\n    rowsWithSize = tsa.resolveTracks(templateRows);\n    tsa.set('tracks', templateColumns);\n    columnsWithSize = tsa.resolveTracks(templateColumns);\n\n    for (i = 0; i < rowsWithSize.length; i++) {\n      gridMatrix.push(columnsWithSize.map(function (c) {\n        return {\n          width: c.width,\n          height: c.height,\n          bounds: c.bounds\n        };\n      }));\n    }\n  }; // if (getDisplayProperty(domTree)) {\n  //   //TODO: fix me\n  //   return computeLayout(domTree);\n  // }\n  // Size the rows and tracks\n  // Create the grid matrix\n\n\n  inflateGridCells(); // Allocate children to grid matrix\n\n  children.forEach(function (child) {\n    var gridRowStart = child.gridRowStart,\n        gridRowEnd = child.gridRowEnd,\n        gridColumnStart = child.gridColumnStart,\n        gridColumnEnd = child.gridColumnEnd;\n\n    if (withinBounds(gridRowStart, gridRowEnd, gridColumnStart, gridColumnEnd)) {\n      // array of cells this child occupies\n      child.matrixPosition = [{\n        row: gridRowStart - 1,\n        column: gridColumnStart - 1\n      }];\n    }\n  });\n};\n\n/* harmony default export */ __webpack_exports__[\"default\"] = (computeGridLayout);\n\n//# sourceURL=webpack:///./src/grid/index.js?");
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils */ "./src/utils/index.js");
+/* harmony import */ var _mason__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../mason */ "./src/mason.js");
+/* harmony import */ var _track_sizing__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./track-sizing */ "./src/grid/track-sizing.js");
+
+
+
+
+var parseTemplete = function parseTemplete(template) {
+  return template.map(function (size, index) {
+    return {
+      size: size,
+      start: index + 1,
+      end: index + 2
+    };
+  });
+},
+    withinBounds = function withinBounds(rowStart, rowEnd, colStart, colEnd, templateRows, templateColumns) {
+  return rowStart - 1 >= 0 && rowStart - 1 < templateRows.length && rowEnd - 2 >= 0 && rowEnd - 2 < templateRows.length && colStart - 1 >= 0 && colStart - 1 < templateColumns.length && colEnd - 2 >= 0 && colEnd - 2 < templateColumns.length;
+},
+    addCoordinatesToCells = function addCoordinatesToCells(gridMatrix, children) {
+  var i,
+      j,
+      item,
+      usedX = 0,
+      usedY = 0,
+      cell = {};
+
+  for (i = 0; i < gridMatrix.length; i++) {
+    usedX = 0; // usedY = null;
+
+    for (j = 0; j < gridMatrix[i].length; j++) {
+      item = gridMatrix[i][j];
+      item.startX = usedX;
+      item.endX = usedX + item.columnSize;
+      usedX = item.endX;
+      item.startY = usedY;
+      item.endY = usedY + item.rowSize;
+
+      if (j == gridMatrix[i].length - 1) {
+        usedY = usedY + item.rowSize;
+      }
+    }
+  }
+
+  children.forEach(function (child) {
+    cell = gridMatrix[child.matrixPosition.row][child.matrixPosition.column];
+    child.layout = {};
+    child.layout.width = child.style.width;
+    child.layout.height = child.style.height;
+    child.layout.startX = cell.startX;
+    child.layout.startY = cell.startY;
+    child.layout.endX = cell.endX;
+    child.layout.endY = cell.endY;
+  });
+},
+    placeChildrenInGrid = function placeChildrenInGrid(children, gridMatrix, templateRows, templateColumns) {
+  children.forEach(function (child) {
+    var _child$style = child.style,
+        gridRowStart = _child$style.gridRowStart,
+        gridRowEnd = _child$style.gridRowEnd,
+        gridColumnStart = _child$style.gridColumnStart,
+        gridColumnEnd = _child$style.gridColumnEnd;
+
+    if (withinBounds(gridRowStart, gridRowEnd, gridColumnStart, gridColumnEnd, templateRows, templateColumns)) {
+      gridMatrix[gridRowStart - 1][gridColumnStart - 1].item = child;
+      child.matrixPosition = {
+        row: gridRowStart - 1,
+        column: gridColumnStart - 1
+      }; // TODO:  consider spanning items
+    }
+  });
+},
+    inflateGridCells = function inflateGridCells(tsa, children, columns, rows, containerHeight, containerWidth, gridMatrix) {
+  var i, j;
+  columns = tsa.set('tracks', columns).set('items', children.map(function (c) {
+    return {
+      start: c.style.gridColumnStart,
+      end: c.style.gridColumnEnd,
+      size: c.style.width
+    };
+  })).set('containerSize', containerHeight).resolveTracks();
+  rows = tsa.set('tracks', rows).set('items', children.map(function (r) {
+    return {
+      start: r.style.gridRowStart,
+      end: r.style.gridRowEnd,
+      size: r.style.height
+    };
+  })).set('containerSize', containerWidth).resolveTracks();
+
+  for (i = 0; i < rows.length; i++) {
+    for (j = 0; j < rows.length; j++) {
+      gridMatrix[i][j].rowSize = rows[i].baseSize;
+      gridMatrix[i][j].columnSize = columns[j].baseSize;
+    }
+  }
+},
+    computeGridLayout = function computeGridLayout(domTree) {
+  var gridMatrix = [],
+      styles = domTree.style || {},
+      children = domTree.children || [],
+      templateRows = styles.templateRows,
+      templateColumns = styles.templateColumns,
+      width = styles.width,
+      height = styles.height,
+      tsa = new _track_sizing__WEBPACK_IMPORTED_MODULE_2__["default"](),
+      createGridMatrix = function createGridMatrix() {
+    var i;
+
+    for (i = 0; i < formattedRows.length; i++) {
+      gridMatrix.push(formattedColumns.map(function (c) {
+        return {
+          columnSize: +c.size,
+          rowSize: +formattedRows[i].size
+        };
+      }));
+    }
+  };
+
+  var i,
+      formattedRows = parseTemplete(templateRows),
+      formattedColumns = parseTemplete(templateColumns);
+
+  for (i = 0; i < children.length; i++) {
+    if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(children[i])) {
+      children[i] = Object(_mason__WEBPACK_IMPORTED_MODULE_1__["computeLayout"])(children[i]);
+    }
+  } // Create the grid matrix
+
+
+  createGridMatrix(); // Allocate children to grid matrix
+
+  placeChildrenInGrid(children, gridMatrix, templateRows, templateColumns); // Size the rows and tracks
+
+  inflateGridCells(tsa, children, formattedColumns, formattedRows, height, width, gridMatrix); // Calling this second time to ensure that if some item's min-content-contribution has changed
+
+  inflateGridCells(tsa, children, formattedColumns, formattedRows, height, width, gridMatrix); // Adds x,y coordinates to each cell depending on position and dimensions
+
+  addCoordinatesToCells(gridMatrix, children);
+  return domTree;
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (computeGridLayout);
 
 /***/ }),
 
@@ -106,7 +258,271 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _uti
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\nfunction ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }\n\nfunction _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }\n\nfunction _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }\n\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nfunction _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }\n\nfunction _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }\n\nvar getMultiplierOfFr = function getMultiplierOfFr(size) {\n  return +size.replace(/fr/, '');\n},\n    _frSpaceDistributorHelper = function _frSpaceDistributorHelper(tracks, totalSpaceUsed, containerSize) {\n  var freeSpace,\n      spacePerFrTrack,\n      eligibleTracks,\n      totalFrTrackRatio = 0;\n\n  if (!tracks.length) {\n    return;\n  }\n\n  tracks.forEach(function (track) {\n    return totalFrTrackRatio += track.multiplier;\n  });\n  freeSpace = containerSize - totalSpaceUsed;\n  spacePerFrTrack = freeSpace / totalFrTrackRatio;\n  eligibleTracks = tracks.filter(function (track) {\n    return track.baseSize <= track.multiplier * spacePerFrTrack;\n  });\n\n  if (eligibleTracks.length < tracks.length) {\n    tracks.filter(function (track) {\n      return track.baseSize > track.multiplier * spacePerFrTrack;\n    }).forEach(function (track) {\n      return totalSpaceUsed += track.baseSize;\n    });\n    return _frSpaceDistributorHelper(eligibleTracks, totalSpaceUsed, containerSize);\n  } else {\n    eligibleTracks.forEach(function (track) {\n      return track.baseSize = track.multiplier * spacePerFrTrack;\n    });\n  }\n},\n    _intrinsicSpaceDistributorHelper = function _intrinsicSpaceDistributorHelper(tracks, totalSpaceUsed, containerSize) {\n  var freeSpace, spacePerIntrinsicTrack;\n\n  if (!tracks.length) {\n    return;\n  }\n\n  freeSpace = containerSize - totalSpaceUsed;\n  spacePerIntrinsicTrack = freeSpace / tracks.length;\n  tracks.forEach(function (track) {\n    return track.baseSize += spacePerIntrinsicTrack;\n  });\n};\n\nvar TrackResolver =\n/*#__PURE__*/\nfunction () {\n  function TrackResolver() {\n    var tracks = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];\n    var items = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];\n    var containerSize = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 600;\n\n    _classCallCheck(this, TrackResolver);\n\n    this.props = {};\n    this._config = {\n      frTracks: [],\n      intrinsicTracks: []\n    };\n    this.set('tracks', tracks);\n    this.set('items', items);\n    this.set('containerSize', containerSize);\n    return this;\n  }\n\n  _createClass(TrackResolver, [{\n    key: \"set\",\n    value: function set(key, info) {\n      this.props[key] = info;\n\n      switch (key) {\n        case 'tracks':\n          this._initTrackSize();\n\n          break;\n\n        case 'items':\n          this._initItems();\n\n          break;\n      }\n\n      return this;\n    }\n  }, {\n    key: \"get\",\n    value: function get(key) {\n      return this.props[key];\n    }\n  }, {\n    key: \"_initTrackSize\",\n    value: function _initTrackSize(_tracks) {\n      var tracks = _tracks || this.props.tracks || [],\n          config = this._config,\n          trackAr = [],\n          i,\n          len,\n          size,\n          type,\n          multiplier,\n          baseSize,\n          growthLimit;\n      config.frTracks = [];\n      config.intrinsicTracks = [];\n\n      for (i = 0, len = tracks.length; i < len; i++) {\n        size = tracks[i].size;\n        multiplier = 1;\n\n        if (!isNaN(+size)) {\n          baseSize = growthLimit = +size;\n          type = 'fixed';\n        } else if (size.indexOf('fr') > 0) {\n          baseSize = growthLimit = 0;\n          config.frTracks.push(i);\n          type = 'flex';\n          multiplier = getMultiplierOfFr(size);\n        } else {\n          baseSize = 0;\n          growthLimit = Infinity;\n          type = 'intrinsic';\n          config.intrinsicTracks.push(i);\n        }\n\n        trackAr.push({\n          size: size,\n          type: type,\n          multiplier: multiplier,\n          baseSize: baseSize,\n          growthLimit: growthLimit\n        });\n      }\n\n      return config.sanitizedTracks = trackAr;\n    }\n  }, {\n    key: \"_initItems\",\n    value: function _initItems(_items) {\n      var items = _items || this.props.items || [],\n          sanitizedItems = [],\n          item,\n          i,\n          len;\n\n      for (i = 0, len = items.length; i < len; i++) {\n        sanitizedItems.push(_objectSpread({}, items[i]));\n        item = sanitizedItems[i];\n        item.size = isNaN(item.size) ? this._getParentSize(item) : +item.size;\n      }\n\n      sanitizedItems.sort(function (a, b) {\n        var gap1 = a.end - a.start,\n            gap2 = b.end - b.start;\n\n        if (gap1 === gap2) {\n          return a.start < b.start;\n        } else return gap1 < gap2;\n      });\n      return this._config.sanitizedItems = sanitizedItems;\n    }\n  }, {\n    key: \"_getParentSize\",\n    value: function _getParentSize(item) {\n      var sanitizedTracks = this._config.sanitizedTracks,\n          parentTracks,\n          widthOfParentTracks = 0;\n      parentTracks = sanitizedTracks.filter(function (track) {\n        return track.start >= item.start && track.end <= item.end;\n      });\n      parentTracks.forEach(function (track) {\n        return widthOfParentTracks += track.baseSize;\n      });\n      return widthOfParentTracks || 0;\n    }\n  }, {\n    key: \"resolveTracks\",\n    value: function resolveTracks() {\n      this._placeNonSpanningItems()._placeSpanningItems()._distributeFreeSpace();\n\n      return this._config.sanitizedTracks;\n    }\n  }, {\n    key: \"_placeNonSpanningItems\",\n    value: function _placeNonSpanningItems() {\n      var _this$_config = this._config,\n          sanitizedItems = _this$_config.sanitizedItems,\n          sanitizedTracks = _this$_config.sanitizedTracks,\n          nonSpanningItems = sanitizedItems.filter(function (item) {\n        return item.end - item.start === 1;\n      }),\n          track,\n          trackIndex;\n      nonSpanningItems.forEach(function (item) {\n        trackIndex = item.start - 1;\n        track = sanitizedTracks[trackIndex];\n\n        if (track.type !== 'fixed') {\n          track.baseSize = Math.max(track.baseSize, item.size);\n          track.growthLimit = Math.max(track.growthLimit, track.baseSize);\n        }\n      });\n      return this;\n    }\n  }, {\n    key: \"_placeSpanningItems\",\n    value: function _placeSpanningItems() {\n      return this;\n    }\n  }, {\n    key: \"_distributeFreeSpace\",\n    value: function _distributeFreeSpace() {\n      var _this$_config2 = this._config,\n          frTracks = _this$_config2.frTracks,\n          intrinsicTracks = _this$_config2.intrinsicTracks,\n          sanitizedTracks = _this$_config2.sanitizedTracks,\n          containerSize = this.props.containerSize,\n          totalSpaceUsed = 0;\n      sanitizedTracks.forEach(function (track) {\n        return totalSpaceUsed += track.baseSize;\n      });\n\n      if (totalSpaceUsed < containerSize) {\n        if (frTracks.length) {\n          frTracks.forEach(function (trackId, index) {\n            frTracks[index] = sanitizedTracks[trackId];\n          });\n          frTracks.forEach(function (track) {\n            return totalSpaceUsed -= track.baseSize;\n          });\n\n          _frSpaceDistributorHelper(frTracks, totalSpaceUsed, containerSize);\n        } else if (intrinsicTracks.length) {\n          intrinsicTracks.forEach(function (trackId, index) {\n            intrinsicTracks[index] = sanitizedTracks[trackId];\n          });\n\n          _intrinsicSpaceDistributorHelper(intrinsicTracks, totalSpaceUsed, containerSize);\n        }\n      }\n\n      return this;\n    }\n  }]);\n\n  return TrackResolver;\n}();\n\n/* harmony default export */ __webpack_exports__[\"default\"] = (TrackResolver);\n\n//# sourceURL=webpack:///./src/grid/track-sizing.js?");
+__webpack_require__.r(__webpack_exports__);
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var getMultiplierOfFr = function getMultiplierOfFr(size) {
+  return +size.replace(/fr/, '');
+},
+    _frSpaceDistributorHelper = function _frSpaceDistributorHelper(tracks, totalSpaceUsed, containerSize) {
+  var freeSpace,
+      spacePerFrTrack,
+      eligibleTracks,
+      totalFrTrackRatio = 0;
+
+  if (!tracks.length) {
+    return;
+  }
+
+  tracks.forEach(function (track) {
+    return totalFrTrackRatio += track.multiplier;
+  });
+  freeSpace = containerSize - totalSpaceUsed;
+  spacePerFrTrack = freeSpace / totalFrTrackRatio;
+  eligibleTracks = tracks.filter(function (track) {
+    return track.baseSize <= track.multiplier * spacePerFrTrack;
+  });
+
+  if (eligibleTracks.length < tracks.length) {
+    tracks.filter(function (track) {
+      return track.baseSize > track.multiplier * spacePerFrTrack;
+    }).forEach(function (track) {
+      return totalSpaceUsed += track.baseSize;
+    });
+    return _frSpaceDistributorHelper(eligibleTracks, totalSpaceUsed, containerSize);
+  } else {
+    eligibleTracks.forEach(function (track) {
+      return track.baseSize = track.multiplier * spacePerFrTrack;
+    });
+  }
+},
+    _intrinsicSpaceDistributorHelper = function _intrinsicSpaceDistributorHelper(tracks, totalSpaceUsed, containerSize) {
+  var freeSpace, spacePerIntrinsicTrack;
+
+  if (!tracks.length) {
+    return;
+  }
+
+  freeSpace = containerSize - totalSpaceUsed;
+  spacePerIntrinsicTrack = freeSpace / tracks.length;
+  tracks.forEach(function (track) {
+    return track.baseSize += spacePerIntrinsicTrack;
+  });
+};
+
+var TrackResolver =
+/*#__PURE__*/
+function () {
+  function TrackResolver() {
+    var tracks = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+    var items = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+    var containerSize = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 600;
+
+    _classCallCheck(this, TrackResolver);
+
+    this.props = {};
+    this._config = {
+      frTracks: [],
+      intrinsicTracks: []
+    };
+    this.set('tracks', tracks);
+    this.set('items', items);
+    this.set('containerSize', containerSize);
+    return this;
+  }
+
+  _createClass(TrackResolver, [{
+    key: "set",
+    value: function set(key, info) {
+      this.props[key] = info;
+
+      switch (key) {
+        case 'tracks':
+          this._initTrackSize();
+
+          break;
+
+        case 'items':
+          this._initItems();
+
+          break;
+      }
+
+      return this;
+    }
+  }, {
+    key: "get",
+    value: function get(key) {
+      return this.props[key];
+    }
+  }, {
+    key: "_initTrackSize",
+    value: function _initTrackSize(_tracks) {
+      var tracks = _tracks || this.props.tracks || [],
+          config = this._config,
+          trackAr = [],
+          i,
+          len,
+          size,
+          type,
+          multiplier,
+          baseSize,
+          growthLimit;
+      config.frTracks = [];
+      config.intrinsicTracks = [];
+
+      for (i = 0, len = tracks.length; i < len; i++) {
+        size = tracks[i].size;
+        multiplier = 1;
+
+        if (!isNaN(+size)) {
+          baseSize = growthLimit = +size;
+          type = 'fixed';
+        } else if (size.indexOf('fr') > 0) {
+          baseSize = growthLimit = 0;
+          config.frTracks.push(i);
+          type = 'flex';
+          multiplier = getMultiplierOfFr(size);
+        } else {
+          baseSize = 0;
+          growthLimit = Infinity;
+          type = 'intrinsic';
+          config.intrinsicTracks.push(i);
+        }
+
+        trackAr.push(_objectSpread({}, tracks[i], {
+          type: type,
+          multiplier: multiplier,
+          baseSize: baseSize,
+          growthLimit: growthLimit
+        }));
+      }
+
+      return config.sanitizedTracks = trackAr;
+    }
+  }, {
+    key: "_initItems",
+    value: function _initItems(_items) {
+      var items = _items || this.props.items || [],
+          sanitizedItems = [],
+          item,
+          i,
+          len;
+
+      for (i = 0, len = items.length; i < len; i++) {
+        sanitizedItems.push(_objectSpread({}, items[i]));
+        item = sanitizedItems[i];
+        item.size = isNaN(item.size) ? this._getParentSize(item) : +item.size;
+      }
+
+      sanitizedItems.sort(function (a, b) {
+        var gap1 = a.end - a.start,
+            gap2 = b.end - b.start;
+
+        if (gap1 === gap2) {
+          return a.start < b.start;
+        } else return gap1 < gap2;
+      });
+      return this._config.sanitizedItems = sanitizedItems;
+    }
+  }, {
+    key: "_getParentSize",
+    value: function _getParentSize(item) {
+      var sanitizedTracks = this._config.sanitizedTracks,
+          parentTracks,
+          widthOfParentTracks = 0;
+      parentTracks = sanitizedTracks.filter(function (track) {
+        return track.start >= item.start && track.end <= item.end;
+      });
+      parentTracks.forEach(function (track) {
+        return widthOfParentTracks += track.baseSize;
+      });
+      return widthOfParentTracks || 0;
+    }
+  }, {
+    key: "resolveTracks",
+    value: function resolveTracks() {
+      this._placeNonSpanningItems()._placeSpanningItems()._distributeFreeSpace();
+
+      return this._config.sanitizedTracks;
+    }
+  }, {
+    key: "_placeNonSpanningItems",
+    value: function _placeNonSpanningItems() {
+      var _this$_config = this._config,
+          sanitizedItems = _this$_config.sanitizedItems,
+          sanitizedTracks = _this$_config.sanitizedTracks,
+          nonSpanningItems = sanitizedItems.filter(function (item) {
+        return item.end - item.start === 1;
+      }),
+          track,
+          trackIndex;
+      nonSpanningItems.forEach(function (item) {
+        trackIndex = item.start - 1;
+        track = sanitizedTracks[trackIndex];
+
+        if (track.type !== 'fixed') {
+          track.baseSize = Math.max(track.baseSize, item.size);
+          track.growthLimit = Math.max(track.growthLimit, track.baseSize);
+        }
+      });
+      return this;
+    }
+  }, {
+    key: "_placeSpanningItems",
+    value: function _placeSpanningItems() {
+      return this;
+    }
+  }, {
+    key: "_distributeFreeSpace",
+    value: function _distributeFreeSpace() {
+      var _this$_config2 = this._config,
+          frTracks = _this$_config2.frTracks,
+          intrinsicTracks = _this$_config2.intrinsicTracks,
+          sanitizedTracks = _this$_config2.sanitizedTracks,
+          containerSize = this.props.containerSize,
+          totalSpaceUsed = 0;
+      sanitizedTracks.forEach(function (track) {
+        return totalSpaceUsed += track.baseSize;
+      });
+
+      if (totalSpaceUsed < containerSize) {
+        if (frTracks.length) {
+          frTracks.forEach(function (trackId, index) {
+            frTracks[index] = sanitizedTracks[trackId];
+          });
+          frTracks.forEach(function (track) {
+            return totalSpaceUsed -= track.baseSize;
+          });
+
+          _frSpaceDistributorHelper(frTracks, totalSpaceUsed, containerSize);
+        } else if (intrinsicTracks.length) {
+          intrinsicTracks.forEach(function (trackId, index) {
+            intrinsicTracks[index] = sanitizedTracks[trackId];
+          });
+
+          _intrinsicSpaceDistributorHelper(intrinsicTracks, totalSpaceUsed, containerSize);
+        }
+      }
+
+      return this;
+    }
+  }]);
+
+  return TrackResolver;
+}();
+
+/* harmony default export */ __webpack_exports__["default"] = (TrackResolver);
 
 /***/ }),
 
@@ -118,7 +534,12 @@ eval("__webpack_require__.r(__webpack_exports__);\nfunction ownKeys(object, enum
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _mason__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./mason */ \"./src/mason.js\");\n/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, \"computeLayout\", function() { return _mason__WEBPACK_IMPORTED_MODULE_0__[\"computeLayout\"]; });\n\n\n\n\n//# sourceURL=webpack:///./src/index.js?");
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _mason__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./mason */ "./src/mason.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "computeLayout", function() { return _mason__WEBPACK_IMPORTED_MODULE_0__["computeLayout"]; });
+
+
+
 
 /***/ }),
 
@@ -130,7 +551,34 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _mas
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"computeLayout\", function() { return computeLayout; });\n/* harmony import */ var _grid__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./grid */ \"./src/grid/index.js\");\n/* harmony import */ var _utils_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/constants */ \"./src/utils/constants.js\");\n/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils */ \"./src/utils/index.js\");\n\n\n\n\nvar getComputeFn = function getComputeFn(display) {\n  switch (display) {\n    case _utils_constants__WEBPACK_IMPORTED_MODULE_1__[\"DISPLAY_GRID\"]:\n      return _grid__WEBPACK_IMPORTED_MODULE_0__[\"default\"];\n\n    case _utils_constants__WEBPACK_IMPORTED_MODULE_1__[\"DISPLAY_FLEX\"]:\n      return _grid__WEBPACK_IMPORTED_MODULE_0__[\"default\"];\n\n    default:\n      // Probably throw unsupported error?\n      return _grid__WEBPACK_IMPORTED_MODULE_0__[\"default\"];\n  }\n},\n    computeLayout = function computeLayout() {\n  var domTree = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};\n  return getComputeFn(Object(_utils__WEBPACK_IMPORTED_MODULE_2__[\"getDisplayProperty\"])(domTree))(domTree);\n};\n\n\n\n//# sourceURL=webpack:///./src/mason.js?");
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "computeLayout", function() { return computeLayout; });
+/* harmony import */ var _grid__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./grid */ "./src/grid/index.js");
+/* harmony import */ var _utils_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/constants */ "./src/utils/constants.js");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils */ "./src/utils/index.js");
+
+
+
+
+var getComputeFn = function getComputeFn(display) {
+  switch (display) {
+    case _utils_constants__WEBPACK_IMPORTED_MODULE_1__["DISPLAY_GRID"]:
+      return _grid__WEBPACK_IMPORTED_MODULE_0__["default"];
+
+    case _utils_constants__WEBPACK_IMPORTED_MODULE_1__["DISPLAY_FLEX"]:
+      return _grid__WEBPACK_IMPORTED_MODULE_0__["default"];
+
+    default:
+      // Probably throw unsupported error?
+      return _grid__WEBPACK_IMPORTED_MODULE_0__["default"];
+  }
+},
+    computeLayout = function computeLayout() {
+  var domTree = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  return getComputeFn(Object(_utils__WEBPACK_IMPORTED_MODULE_2__["getDisplayProperty"])(domTree))(domTree);
+};
+
+
 
 /***/ }),
 
@@ -142,7 +590,11 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) *
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"DISPLAY_GRID\", function() { return DISPLAY_GRID; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"DISPLAY_FLEX\", function() { return DISPLAY_FLEX; });\nvar DISPLAY_GRID = 'grid';\nvar DISPLAY_FLEX = 'flex';\n\n//# sourceURL=webpack:///./src/utils/constants.js?");
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DISPLAY_GRID", function() { return DISPLAY_GRID; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DISPLAY_FLEX", function() { return DISPLAY_FLEX; });
+var DISPLAY_GRID = 'grid';
+var DISPLAY_FLEX = 'flex';
 
 /***/ }),
 
@@ -154,8 +606,16 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) *
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"getDisplayProperty\", function() { return getDisplayProperty; });\nvar getDisplayProperty = function getDisplayProperty(domTree) {\n  return domTree.style && domTree.style.display;\n};\n\n\n\n//# sourceURL=webpack:///./src/utils/index.js?");
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDisplayProperty", function() { return getDisplayProperty; });
+var getDisplayProperty = function getDisplayProperty(domTree) {
+  return domTree.style && domTree.style.display;
+};
+
+
 
 /***/ })
 
 /******/ });
+});
+//# sourceMappingURL=main.js.map
