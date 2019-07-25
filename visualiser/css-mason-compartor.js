@@ -4,6 +4,9 @@ const chart = {
     display: 'grid',
     width: 300,
     height: 300,
+    // justifyItems: 'end',
+    justifyItems: 'center',
+    alignItems: 'center',
     templateRows: ['50', '1fr', '100'],
     templateRowsHTML: ['50px', '1fr', '100px'],
     templateColumns: ['50', '1fr', '100'],
@@ -12,8 +15,9 @@ const chart = {
   children: [
     {
       style: {
-        width: 50,
-        height: 50,
+        width: 10,
+        height: 10,
+        // justifySelf: 'center',
         gridRowStart: 1,
         gridRowEnd: 2,
         gridColumnStart: 1,
@@ -139,6 +143,10 @@ function getHTMLCSSInlined () {
   htmlContainerEl.style.display = 'grid';
   htmlContainerEl.style.gridTemplateColumns = chart.style.templateColumnsHTML.join(" ");
   htmlContainerEl.style.gridTemplateRows = chart.style.templateRowsHTML.join(" ");
+  htmlContainerEl.style.justifyItems = chart.style.justifyItems;
+  htmlContainerEl.style.alignItems = chart.style.alignItems;
+  htmlContainerEl.style.width = chart.style.width;
+  htmlContainerEl.style.height = chart.style.height;
 
   masonContainerEl.style.width = chart.style.width;
   masonContainerEl.style.height = chart.style.height;

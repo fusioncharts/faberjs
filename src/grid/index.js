@@ -1,6 +1,7 @@
-import { getDisplayProperty } from "../utils";
+import { getDisplayProperty, centerify, endify } from "../utils";
 import { computeLayout } from "../mason";
 import TrackResolver from "./track-sizing";
+import { JUSTIFY_ALIGN_CENTER, JUSTIFY_ALIGN_END } from "../utils/constants";
 
 
 const parseTemplete = (template) => template.map((size, index) => ({ size, start: index + 1, end: index + 2 })),
@@ -14,8 +15,8 @@ const parseTemplete = (template) => template.map((size, index) => ({ size, start
       && colEnd - 2 >= 0
       && colEnd - 2 < templateColumns.length;
   },
-  addCoordinatesToCells = (gridMatrix, children) => {
-    let i, j, item, usedX = 0, usedY = 0, cell = {};
+  addCoordinatesToCells = (gridMatrix, children, containerStyles) => {
+    let i, j, item, usedX = 0, usedY = 0, cell = {}, alignedBounds = {};
     for (i = 0; i < gridMatrix.length; i++) {
       usedX = 0;
       // usedY = null;
@@ -38,12 +39,42 @@ const parseTemplete = (template) => template.map((size, index) => ({ size, start
     children.forEach(child => {
       cell = gridMatrix[child.matrixPosition.row][child.matrixPosition.column];
       child.layout = {};
+
       child.layout.width = child.style.width;
       child.layout.height = child.style.height;
       child.layout.startX = cell.startX;
       child.layout.startY = cell.startY;
       child.layout.endX = cell.endX;
       child.layout.endY = cell.endY;
+
+      if (containerStyles.justifyItems === JUSTIFY_ALIGN_CENTER || child.style.justifySelf == JUSTIFY_ALIGN_CENTER) {
+        if (!Number.isNaN(child.style.width)) {
+          alignedBounds = centerify(cell.startX, cell.endX, child.layout.startX, child.layout.width);
+          child.layout.startX = alignedBounds.start;
+          child.layout.endX = alignedBounds.end;
+        }
+      }
+      if (containerStyles.alignItems === JUSTIFY_ALIGN_CENTER || child.style.alignSelf == JUSTIFY_ALIGN_CENTER) {
+        if (!Number.isNaN(child.style.height)) {
+          alignedBounds = centerify(cell.startY, cell.endY, cell.startY, child.layout.height);
+          child.layout.startY = alignedBounds.start;
+          child.layout.endY = alignedBounds.end;
+        }
+      }
+      if (containerStyles.justifyItems === JUSTIFY_ALIGN_END || child.style.justifySelf == JUSTIFY_ALIGN_END) {
+        if (!Number.isNaN(child.style.width)) {
+          alignedBounds = endify(cell.startX, cell.endX, child.layout.startX, child.layout.width);
+          child.layout.startX = alignedBounds.start;
+          child.layout.endX = alignedBounds.end;
+        }
+      }
+      if (containerStyles.alignItems === JUSTIFY_ALIGN_END || child.style.alignSelf == JUSTIFY_ALIGN_END) {
+        if (!Number.isNaN(child.style.height)) {
+          alignedBounds = endify(cell.startY, cell.endY, cell.startY, child.layout.height);
+          child.layout.startY = alignedBounds.start;
+          child.layout.endY = alignedBounds.end;
+        }
+      }
     });
   },
   placeChildrenInGrid = (children, gridMatrix, templateRows, templateColumns) => {
@@ -82,9 +113,9 @@ const parseTemplete = (template) => template.map((size, index) => ({ size, start
   },
   computeGridLayout = (domTree) => {
     const gridMatrix = [],
-      styles = domTree.style || {},
+      containerStyles = domTree.style || {},
       children = domTree.children || [],
-      { templateRows, templateColumns, width, height } = styles,
+      { templateRows, templateColumns, width, height } = containerStyles,
       tsa = new TrackResolver(),
       createGridMatrix = () => {
         let i;
@@ -115,7 +146,7 @@ const parseTemplete = (template) => template.map((size, index) => ({ size, start
     // Calling this second time to ensure that if some item's min-content-contribution has changed
     inflateGridCells(tsa, children, formattedColumns, formattedRows, height, width, gridMatrix);
     // Adds x,y coordinates to each cell depending on position and dimensions
-    addCoordinatesToCells(gridMatrix, children);
+    addCoordinatesToCells(gridMatrix, children, containerStyles);
 
     return domTree;
   };
