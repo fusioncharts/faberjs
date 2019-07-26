@@ -276,7 +276,7 @@ class Grid {
 }
 
 const replaceWithAbsValue = (styleTrack, calculatedTrack) => {
-    let trackSplitAr = styleTrack.split(' '),
+    let trackSplitAr = styleTrack.split(' ').filter(track => !!track.trim()),
       trackWithAbsValue = '',
       counter = 1;
 
