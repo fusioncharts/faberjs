@@ -27,9 +27,20 @@ const ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'
 
       return cloneObj;
     }
+  },
+  attachLayoutInformation = (baseTree = {}, calculatedTree = {}) => {
+    let i,
+      len;
+
+    baseTree.layout = calculatedTree.layout;
+
+    for (i = 0, len = (baseTree.children || []).length; i < len; i++) {
+      attachLayoutInformation(baseTree.children[i], calculatedTree.children[i]);
+    }
   };
 
 export {
   cloneObject,
+  attachLayoutInformation,
   getDisplayProperty
 };

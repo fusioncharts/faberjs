@@ -208,6 +208,8 @@ class Grid {
       colTrackdp[i] = colTrackdp[i - 1] + colTracks[i].calculatedStyle.baseSize;
     }
     domTree.layout = {
+      x: 0,
+      y: 0,
       width: isNaN(domTree.style.width) ? colTrackdp[colTrackdp.length - 1] : domTree.style.width,
       height: isNaN(domTree.style.height) ? rowTrackdp[rowTrackdp.length - 1] : domTree.style.height
     };
@@ -250,6 +252,25 @@ class Grid {
         width,
         height
       };
+    });
+  }
+
+  _updatePositioWRTRoot (_domTree) {
+    let domTree = _domTree || this.props.domTree,
+      children = domTree.children || [];
+
+    domTree.layout.x = domTree.layout.x || 0;
+    domTree.layout.y = domTree.layout.y || 0;
+
+    children.forEach(child => {
+      child.layout.x = (child.layout.x || 0) + domTree.layout.x;
+      child.layout.x2 = (child.layout.x2 || 0) + domTree.layout.x;
+      child.layout.y = (child.layout.y || 0) + domTree.layout.y;
+      child.layout.y2 = (child.layout.y2 || 0) + domTree.layout.y;
+
+      if (getDisplayProperty(child) === 'grid') {
+        this._updatePositioWRTRoot(child);
+      }
     });
   }
 }
@@ -358,6 +379,7 @@ const replaceWithAbsValue = (styleTrack, calculatedTrack) => {
 
     if (count < 2) {
       computeGridLayout(updateDomTreeWithResolvedValues(domTree, grid), 2);
+      domTree.root && grid._updatePositioWRTRoot(domTree);
     }
 
     return domTree;
