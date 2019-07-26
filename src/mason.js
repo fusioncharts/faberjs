@@ -1,17 +1,6 @@
-import {computeGridLayout} from "./grid";
-import { DISPLAY_GRID, DISPLAY_FLEX } from "./utils/constants";
-import { getDisplayProperty, cloneObject, attachLayoutInformation } from "./utils";
+import { getDisplayProperty, cloneObject, getComputeFn, attachLayoutInformation } from "./utils";
 
-const getComputeFn = (display) => {
-    switch(display) {
-    case DISPLAY_GRID: return computeGridLayout;
-    case DISPLAY_FLEX: return computeGridLayout;
-    default:
-      // Probably throw unsupported error?
-      return computeGridLayout;
-    }
-  },
-  computeLayoutHelper = domTree => {
+const computeLayoutHelper = domTree => {
     return getComputeFn(getDisplayProperty(domTree))(domTree);
   },
   computeLayout = (domTree = {}) => {

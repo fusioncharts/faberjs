@@ -8,7 +8,13 @@
     "build": "webpack --mode=production",
     "watch": "webpack --watch --mode=development",
     "lint": "npx eslint src/",
-    "test" : "jest"
+    "test": "jest"
+  },
+  "pre-commit": {
+    "run": [
+      "lint",
+      "test"
+    ]
   },
   "repository": {
     "type": "git",
@@ -40,5 +46,8 @@
     "webpack": "^4.36.1",
     "webpack-cli": "^3.3.6",
     "webpack-dev-server": "^3.7.2"
+  },
+  "dependencies": {
+    "pre-commit": "^1.2.2"
   }
 }
