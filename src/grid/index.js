@@ -148,6 +148,10 @@ class Grid {
     return this;
   }
 
+  _expandTracksIfRequired () {
+    return this;
+  }
+
   _inflateTracks () {
     let { sanitizedItems, colTracks, rowTracks } = this._config,
       sizedTracks,

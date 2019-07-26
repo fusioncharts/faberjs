@@ -289,6 +289,11 @@ function () {
       return this;
     }
   }, {
+    key: "_expandTracksIfRequired",
+    value: function _expandTracksIfRequired() {
+      return this;
+    }
+  }, {
     key: "_inflateTracks",
     value: function _inflateTracks() {
       var _this$_config = this._config,
@@ -899,15 +904,13 @@ var STRETCH = 'stretch';
 /*!****************************!*\
   !*** ./src/utils/index.js ***!
   \****************************/
-/*! exports provided: cloneObject, getDisplayProperty, centerify, endify */
+/*! exports provided: cloneObject, getDisplayProperty */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cloneObject", function() { return cloneObject; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDisplayProperty", function() { return getDisplayProperty; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "centerify", function() { return centerify; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "endify", function() { return endify; });
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 var ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'],
@@ -939,28 +942,6 @@ var ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'],
 
     return cloneObj;
   }
-},
-    centerify = function centerify(axisStart, axisEnd, itemStart, itemSize) {
-  var itemFreeSpaceStart = itemStart - axisStart,
-      itemEnd = itemStart + itemSize,
-      itemFreeSpaceEnd = axisEnd - itemEnd,
-      totalFreeSpace = itemFreeSpaceStart + itemFreeSpaceEnd; // Item's revised bounds along block axis
-
-  return {
-    start: axisStart + totalFreeSpace / 2,
-    end: axisEnd - totalFreeSpace / 2
-  };
-},
-    endify = function endify(axisStart, axisEnd, itemStart, itemSize) {
-  var itemFreeSpaceStart = itemStart - axisStart,
-      itemEnd = itemStart + itemSize,
-      itemFreeSpaceEnd = axisEnd - itemEnd,
-      totalFreeSpace = itemFreeSpaceStart + itemFreeSpaceEnd; // Item's revised bounds along block axis
-
-  return {
-    start: axisStart + totalFreeSpace,
-    end: axisStart + totalFreeSpace + itemSize
-  };
 };
 
 
