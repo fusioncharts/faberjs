@@ -1,3 +1,6 @@
+import { DISPLAY_GRID, DISPLAY_FLEX } from "./constants";
+import { computeGridLayout } from "../grid";
+
 const ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'],
   getDisplayProperty = (domTree) => {
     return domTree.style && domTree.style.display;
@@ -27,9 +30,19 @@ const ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'
 
       return cloneObj;
     }
+  },
+  getComputeFn = (display) => {
+    switch(display) {
+    case DISPLAY_GRID: return computeGridLayout;
+    case DISPLAY_FLEX: return computeGridLayout;
+    default:
+      // Probably throw unsupported error?
+      return computeGridLayout;
+    }
   };
 
 export {
+  getComputeFn,
   cloneObject,
   getDisplayProperty
 };
