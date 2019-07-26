@@ -39,16 +39,11 @@ const getMultiplierOfFr = size => +size.replace(/fr/, ''),
 
 class TrackResolver {
   constructor (tracks = [], items = [], containerSize = 600) {
-    this.props = {};
-    this._config = {
-      frTracks: [],
-      intrinsicTracks: []
-    };
+    this.clear();
 
     this.set('tracks', tracks);
     this.set('items', items);
     this.set('containerSize', containerSize);
-
     return this;
   }
 
@@ -60,6 +55,8 @@ class TrackResolver {
       this._initTrackSize(); break;
     case 'items':
       this._initItems(); break;
+    case 'containerSize': 
+      this.props[key] = isNaN(+info) ? 0 : +info;
     }
     return this;
   }
@@ -71,7 +68,7 @@ class TrackResolver {
   _initTrackSize (_tracks) {
     let tracks = _tracks || this.props.tracks || [],
       config = this._config,
-      trackAr = [],
+      trackAr = [{}],
       i,
       len,
       size,
@@ -83,7 +80,7 @@ class TrackResolver {
     config.frTracks = [];
     config.intrinsicTracks = [];
 
-    for (i = 0, len = tracks.length; i < len; i++) {
+    for (i = 1, len = tracks.length; i < len; i++) {
       size = tracks[i].size;
 
       multiplier = 1;
@@ -168,7 +165,7 @@ class TrackResolver {
       trackIndex;
 
     nonSpanningItems.forEach(item => {
-      trackIndex = item.start - 1;
+      trackIndex = item.start;
       track = sanitizedTracks[trackIndex];
 
       if (track.type !== 'fixed') {
@@ -189,7 +186,7 @@ class TrackResolver {
       { containerSize } = this.props,
       totalSpaceUsed = 0;
 
-    sanitizedTracks.forEach(track => totalSpaceUsed += track.baseSize);
+    sanitizedTracks.forEach(track => totalSpaceUsed += (track.baseSize || 0));
 
     if (totalSpaceUsed < containerSize) {
       if (frTracks.length) {
@@ -201,6 +198,16 @@ class TrackResolver {
         _intrinsicSpaceDistributorHelper(intrinsicTracks, totalSpaceUsed, containerSize);
       }
     }
+    return this;
+  }
+
+  clear () {
+    this.props = {};
+    this._config = {
+      frTracks: [],
+      intrinsicTracks: []
+    };
+
     return this;
   }
 }

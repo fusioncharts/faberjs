@@ -1,154 +1,368 @@
-import { getDisplayProperty, centerify, endify } from "../utils";
-import { computeLayout } from "../mason";
+import { getDisplayProperty } from "../utils";
+import { computeLayoutHelper } from "../mason";
 import TrackResolver from "./track-sizing";
-import { JUSTIFY_ALIGN_CENTER, JUSTIFY_ALIGN_END } from "../utils/constants";
+import { CENTER, END, STRETCH } from "../utils/constants";
 
+const validSizes = ['auto'];
+class Grid {
+  constructor () {
+    this.setup();
+  }
 
-const parseTemplete = (template) => template.map((size, index) => ({ size, start: index + 1, end: index + 2 })),
-  withinBounds = (rowStart, rowEnd, colStart, colEnd, templateRows, templateColumns) => {
-    return rowStart - 1 >= 0
-      && rowStart - 1 < templateRows.length
-      && rowEnd - 2 >= 0
-      && rowEnd - 2 < templateRows.length
-      && colStart - 1 >= 0
-      && colStart - 1 < templateColumns.length
-      && colEnd - 2 >= 0
-      && colEnd - 2 < templateColumns.length;
-  },
-  addCoordinatesToCells = (gridMatrix, children, containerStyles) => {
-    let i, j, item, usedX = 0, usedY = 0, cell = {}, alignedBounds = {};
-    for (i = 0; i < gridMatrix.length; i++) {
-      usedX = 0;
-      // usedY = null;
-      for (j = 0; j < gridMatrix[i].length; j++) {
-        item = gridMatrix[i][j];
+  setup () {
+    this._tsa = new TrackResolver();
+    this.props = {};
+    this._config = {
+      mapping: {}
+    };
 
-        item.startX = usedX;
-        item.endX = usedX + item.columnSize;
-        usedX = item.endX;
+    return this;
+  }
 
-        item.startY = usedY;
-        item.endY = usedY + item.rowSize;
+  set (key, value) {
+    this.props[key] = value;
 
-        if (j == gridMatrix[i].length - 1) {
-          usedY = usedY + item.rowSize;
-        }
-      }
-    }
+    return this;
+  }
 
-    children.forEach(child => {
-      cell = gridMatrix[child.matrixPosition.row][child.matrixPosition.column];
-      child.layout = {};
+  getProps (key) {
+    return this.props[key];
+  }
 
-      child.layout.width = child.style.width;
-      child.layout.height = child.style.height;
-      child.layout.startX = cell.startX;
-      child.layout.startY = cell.startY;
-      child.layout.endX = cell.endX;
-      child.layout.endY = cell.endY;
+  getConfig (key) {
+    return this._config[key];
+  }
 
-      if (containerStyles.justifyItems === JUSTIFY_ALIGN_CENTER || child.style.justifySelf == JUSTIFY_ALIGN_CENTER) {
-        if (!Number.isNaN(child.style.width)) {
-          alignedBounds = centerify(cell.startX, cell.endX, child.layout.startX, child.layout.width);
-          child.layout.startX = alignedBounds.start;
-          child.layout.endX = alignedBounds.end;
-        }
-      }
-      if (containerStyles.alignItems === JUSTIFY_ALIGN_CENTER || child.style.alignSelf == JUSTIFY_ALIGN_CENTER) {
-        if (!Number.isNaN(child.style.height)) {
-          alignedBounds = centerify(cell.startY, cell.endY, cell.startY, child.layout.height);
-          child.layout.startY = alignedBounds.start;
-          child.layout.endY = alignedBounds.end;
-        }
-      }
-      if (containerStyles.justifyItems === JUSTIFY_ALIGN_END || child.style.justifySelf == JUSTIFY_ALIGN_END) {
-        if (!Number.isNaN(child.style.width)) {
-          alignedBounds = endify(cell.startX, cell.endX, child.layout.startX, child.layout.width);
-          child.layout.startX = alignedBounds.start;
-          child.layout.endX = alignedBounds.end;
-        }
-      }
-      if (containerStyles.alignItems === JUSTIFY_ALIGN_END || child.style.alignSelf == JUSTIFY_ALIGN_END) {
-        if (!Number.isNaN(child.style.height)) {
-          alignedBounds = endify(cell.startY, cell.endY, cell.startY, child.layout.height);
-          child.layout.startY = alignedBounds.start;
-          child.layout.endY = alignedBounds.end;
-        }
-      }
-    });
-  },
-  placeChildrenInGrid = (children, gridMatrix, templateRows, templateColumns) => {
-    children.forEach(child => {
-      const { gridRowStart, gridRowEnd, gridColumnStart, gridColumnEnd } = child.style;
-      if (withinBounds(gridRowStart, gridRowEnd, gridColumnStart, gridColumnEnd, templateRows, templateColumns)) {
-        gridMatrix[gridRowStart - 1][gridColumnStart - 1].item = child;
-        child.matrixPosition = {
-          row: gridRowStart - 1,
-          column: gridColumnStart - 1
-        };
-        // TODO:  consider spanning items
-      }
-    });
-  },
-  inflateGridCells = (tsa, children, columns, rows, containerHeight, containerWidth, gridMatrix) => {
+  compute (_domTree) {
+    let domTree = _domTree || this.props.domTree;
+
+    this._sanitizeTracks(domTree)
+      ._sanitizeItems(domTree)
+      ._inflateTracks()
+      ._assignCoordinatesToCells(domTree);
+  }
+
+  _sanitizeTracks (_domTree = {}) {
+    let style = _domTree.style,
+      config = this._config,
+      trackInfo;
+
+    trackInfo = this._fetchTrackInformation(style.gridTemplateRows);
+    // trackInfo = this._considerTrackInfoFromChildren(_domTree, trackInfo, 'row');
+    config.mapping.row = {
+      nameToLineMap: trackInfo.nameToLineMap,
+      lineToNameMap: trackInfo.lineToNameMap
+    };
+    config.rowTracks = trackInfo.tracks;
+
+    trackInfo = this._fetchTrackInformation(style.gridTemplateColumns);
+    config.mapping.col = {
+      nameToLineMap: trackInfo.nameToLineMap,
+      lineToNameMap: trackInfo.lineToNameMap
+    };
+    config.colTracks = trackInfo.tracks;
+
+    return this;
+  }
+
+  _fetchTrackInformation (tracks) {
     let i,
-      j;
+      len,
+      splittedTrackInfo = tracks.split(' '),
+      nameList,
+      sizeList,
+      sanitizedTracks = [{}],
+      startLineNames,
+      endLineNames,
+      nameToLineMap = {},
+      lineToNameMap = {};
 
-    columns = tsa.set('tracks', columns)
-      .set('items', children.map(c => ({ start: c.style.gridColumnStart, end: c.style.gridColumnEnd, size: c.style.width })))
-      .set('containerSize', containerHeight)
-      .resolveTracks();
-
-    rows = tsa.set('tracks', rows)
-      .set('items', children.map(r => ({ start: r.style.gridRowStart, end: r.style.gridRowEnd, size: r.style.height })))
-      .set('containerSize', containerWidth)
-      .resolveTracks();
-
-    for (i = 0; i < rows.length; i++) {
-      for (j = 0; j < rows.length; j++) {
-        gridMatrix[i][j].rowSize = rows[i].baseSize;
-        gridMatrix[i][j].columnSize = columns[j].baseSize;
-      }
-    }
-  },
-  computeGridLayout = (domTree) => {
-    const gridMatrix = [],
-      containerStyles = domTree.style || {},
-      children = domTree.children || [],
-      { templateRows, templateColumns, width, height } = containerStyles,
-      tsa = new TrackResolver(),
-      createGridMatrix = () => {
-        let i;
-        for (i = 0; i < formattedRows.length; i++) {
-          gridMatrix.push(formattedColumns.map(c => ({
-            columnSize: +c.size,
-            rowSize: +formattedRows[i].size
-          })));
+    nameList = splittedTrackInfo.filter(track => {
+      if (typeof track === 'string' && track.length) {
+        len = track.length;
+        if (track[0] === '[' && track[len - 1] === ']') {
+          return true;
         }
+        return false;
+      }
+      return true;
+    });
+
+    sizeList = splittedTrackInfo.filter(size => {
+      if (!size) return false;
+
+      len = (size + '').toLowerCase().replace(/px|fr/, '');
+      if (validSizes.indexOf(len) >= 0 || !isNaN(len)) {
+        return true;
+      }
+      return false;
+    });
+
+    for (i = 0, len = sizeList.length; i < len; i++) {
+      startLineNames = (nameList[i] && nameList[i].replace(/\[|\]/g, '').split(' ').filter(name => name.length).map(name => name.trim())) || [i + 1 + ''];
+      endLineNames = (nameList[i + 1] && nameList[i + 1].replace(/\[|\]/g, '').split(' ').filter(name => name.length).map(name => name.trim())) || [i + 2 + ''];
+
+      sanitizedTracks.push({
+        start: i + 1,
+        end: i + 2,
+        size: sizeList[i],
+      });
+
+      // A line can have multiple names but a name can only be assigned to a single line
+      lineToNameMap[i + 1] = startLineNames;
+      lineToNameMap[i + 2] = endLineNames;
+      startLineNames.forEach(name => nameToLineMap[name] = i + 1);
+      endLineNames.forEach(name => nameToLineMap[name] = i + 2);
+      nameToLineMap[i + 1] = i + 1;
+      nameToLineMap[i + 2] = i + 2;
+    }
+
+    return {
+      tracks: sanitizedTracks,
+      nameToLineMap,
+      lineToNameMap
+    };
+  }
+
+  _sanitizeItems (_domTree) {
+    let items = (_domTree || this.props.domTree).children || [],
+      mapping = this._config.mapping,
+      sanitizedItems = [],
+      itemStyle,
+      i,
+      len;
+
+    for (i = 0, len = items.length; i < len; i++) {
+      itemStyle = items[i].style;
+
+      sanitizedItems.push({
+        ...items[i],
+        rowStart: mapping.row.nameToLineMap[itemStyle.gridRowStart],
+        rowEnd: mapping.row.nameToLineMap[itemStyle.gridRowEnd],
+        colStart: mapping.col.nameToLineMap[itemStyle.gridColumnStart],
+        colEnd: mapping.col.nameToLineMap[itemStyle.gridColumnEnd]
+      });
+    }
+
+    this._config.sanitizedItems = sanitizedItems;
+    return this;
+  }
+
+  _expandTracksIfRequired () {
+    return this;
+  }
+
+  _inflateTracks () {
+    let { sanitizedItems, colTracks, rowTracks } = this._config,
+      sizedTracks,
+      { domTree } = this.props,
+      tsa = new TrackResolver();
+
+    sizedTracks = tsa.clear()
+      .set('tracks', colTracks)
+      .set('items', sanitizedItems.map(item => ({
+        start: item.colStart,
+        end: item.colEnd,
+        size: (item.style && item.style.width) || 'auto'
+      })))
+      .set('containerSize', (domTree.style && domTree.style.width) || 'auto')
+      .resolveTracks();
+
+    colTracks.forEach((track, index) => track.calculatedStyle = sizedTracks[index]);
+
+    sizedTracks = tsa.clear()
+      .set('tracks', rowTracks)
+      .set('items', sanitizedItems.map(item => ({
+        start: item.rowStart,
+        end: item.rowEnd,
+        size: (item.style && item.style.height) || 'auto'
+      })))
+      .set('containerSize', (domTree.style && domTree.style.height) || 'auto')
+      .resolveTracks();
+
+    rowTracks.forEach((track, index) => track.calculatedStyle = sizedTracks[index]);
+    return this;
+  }
+
+  _assignCoordinatesToCells (_domTree) {
+    let domTree = _domTree || this.props.domTree,
+      { sanitizedItems, rowTracks, colTracks } = this._config,
+      item,
+      len,
+      i,
+      { justifyItems, alignItems } = domTree.style,
+      trackWidth,
+      trackHeight,
+      width,
+      height,
+      x,
+      y,
+      rowTrackdp = [0],
+      colTrackdp = [0];
+
+    for (i = 1, len = rowTracks.length; i < len; i++) {
+      rowTrackdp[i] = rowTrackdp[i - 1] + rowTracks[i].calculatedStyle.baseSize;
+    }
+
+    for (i = 1, len = colTracks.length; i < len; i++) {
+      colTrackdp[i] = colTrackdp[i - 1] + colTracks[i].calculatedStyle.baseSize;
+    }
+    domTree.layout = {
+      width: isNaN(domTree.style.width) ? colTrackdp[colTrackdp.length - 1] : domTree.style.width,
+      height: isNaN(domTree.style.height) ? rowTrackdp[rowTrackdp.length - 1] : domTree.style.height
+    };
+    domTree.children.forEach((child, index) => {
+      item = sanitizedItems[index];
+      trackWidth = colTrackdp[item.colEnd - 1] - colTrackdp[item.colStart - 1];
+      trackHeight = rowTrackdp[item.rowEnd - 1] - rowTrackdp[item.rowStart - 1];
+      
+      width = isNaN(+child.style.width) ? trackWidth : +child.style.width;
+      height = isNaN(+child.style.height) ? trackHeight : +child.style.height;
+
+      switch (justifyItems || child.style.justifySelf) {
+      case CENTER:
+        x = colTrackdp[item.colStart - 1] + (trackWidth / 2) - (width / 2); break;
+      case END:
+        x = colTrackdp[item.colEnd - 1] - width; break;
+      case STRETCH:
+        width = trackWidth;
+        x = colTrackdp[item.colStart - 1]; break;
+      default:
+        x = colTrackdp[item.colStart - 1];
+      }
+
+      switch (alignItems || child.style.alignSelf) {
+      case CENTER:
+        y = rowTrackdp[item.rowStart - 1] + (trackHeight / 2) - (height / 2); break;
+      case END:
+        y = rowTrackdp[item.rowEnd - 1] - height; break;
+      case STRETCH:
+        height = trackHeight;
+        y = rowTrackdp[item.rowStart - 1]; break;
+      default:
+        y = rowTrackdp[item.rowStart - 1];
+      }
+      child.layout = {
+        x,
+        y,
+        x2: x + width,
+        y2: y + height,
+        width,
+        height
       };
+    });
+  }
+}
 
-    let i,
-      formattedRows = parseTemplete(templateRows),
-      formattedColumns = parseTemplete(templateColumns);
+const replaceWithAbsValue = (styleTrack, calculatedTrack) => {
+    let trackSplitAr = styleTrack.split(' '),
+      trackWithAbsValue = '',
+      counter = 1;
 
-    for (i = 0; i < children.length; i++) {
-      if (getDisplayProperty(children[i])) {
-        children[i] = computeLayout(children[i]);
+    trackSplitAr.forEach(track => {
+      if (validSizes.indexOf(track) > -1 || !isNaN(track) || /[0-9]fr/.test(track)) {
+        trackWithAbsValue += calculatedTrack[counter].calculatedStyle.baseSize + ' ';
+        counter++;
+      } else {
+        trackWithAbsValue += track + ' ';
+      }
+    });
+
+    return trackWithAbsValue.trim();
+  },
+  updateDomTreeWithResolvedValues = (domTree, grid) => {
+    let containerStyle = domTree.style,
+      rowTracks = grid.getConfig('rowTracks'),
+      colTracks = grid.getConfig('colTracks'),
+      mapping = grid.getConfig('mapping'),
+      { gridTemplateRows, gridTemplateColumns } = containerStyle,
+      child,
+      i,
+      j,
+      len,
+      rowTrackSum,
+      colTrackSum,
+      rowStart,
+      rowEnd,
+      colStart,
+      colEnd;
+
+    domTree.style.gridTemplateRows = replaceWithAbsValue(gridTemplateRows, rowTracks);
+    domTree.style.gridTemplateColumns = replaceWithAbsValue(gridTemplateColumns, colTracks);
+
+    for (i = 0, len = domTree.children.length; i < len; i++) {
+      child = domTree.children[i];
+      if (getDisplayProperty(child)) {
+        child.style.gridTemplateColumns = child.userGivenStyles.gridTemplateColumns;
+        child.style.gridTemplateRows = child.userGivenStyles.gridTemplateRows;
+        if (isNaN(child.userGivenStyles.width)) {
+          colStart = child.style.gridColumnStart;
+          colEnd = child.style.gridColumnEnd;
+
+          colStart = mapping.col.nameToLineMap[colStart];
+          colEnd = mapping.col.nameToLineMap[colEnd];
+
+          for (j = colStart, colTrackSum = 0; j < colEnd; j++) {
+            colTrackSum += colTracks[j].calculatedStyle.baseSize;
+          }
+          child.style.width = colTrackSum;
+        }
+        if (isNaN(child.userGivenStyles.height)) {
+          rowStart = child.style.gridRowStart;
+          rowEnd = child.style.gridRowEnd;
+
+          rowStart = mapping.row.nameToLineMap[rowStart];
+          rowEnd = mapping.row.nameToLineMap[rowEnd];
+          
+          for (j = rowStart, rowTrackSum = 0; j < rowEnd; j++) {
+            rowTrackSum += rowTracks[j].calculatedStyle.baseSize;
+          }
+          child.style.height = rowTrackSum;
+        }
       }
     }
 
-    // Create the grid matrix
-    createGridMatrix();
-    // Allocate children to grid matrix
-    placeChildrenInGrid(children, gridMatrix, templateRows, templateColumns);
-    // Size the rows and tracks
-    inflateGridCells(tsa, children, formattedColumns, formattedRows, height, width, gridMatrix);
-    // Calling this second time to ensure that if some item's min-content-contribution has changed
-    inflateGridCells(tsa, children, formattedColumns, formattedRows, height, width, gridMatrix);
-    // Adds x,y coordinates to each cell depending on position and dimensions
-    addCoordinatesToCells(gridMatrix, children, containerStyles);
+    return domTree;
+  },
+  computeGridLayout = (domTree, count = 1) => {
+    let i,
+      len,
+      child,
+      grid;
+
+    if (!domTree || !domTree.style) {
+      return;
+    }
+
+    if (!domTree.userGivenStyles) {
+      domTree.style.width = isNaN(domTree.style.width) ? 'auto' : domTree.style.width;
+      domTree.style.height = isNaN(domTree.style.height) ? 'auto' : domTree.style.height;
+      domTree.userGivenStyles = {
+        gridTemplateColumns: domTree.style.gridTemplateColumns,
+        gridTemplateRows: domTree.style.gridTemplateRows,
+        width: domTree.style.width,
+        height: domTree.style.height
+      };
+    }
+
+    for (i = 0, len = (domTree.children && domTree.children.length); i < len; i++) {
+      child = domTree.children[i];
+      if (getDisplayProperty(child)) {
+        computeLayoutHelper(child, domTree);
+      }
+    }
+
+    grid = new Grid();
+    grid.set('domTree', domTree)
+      .compute();
+
+    if (count < 2) {
+      computeGridLayout(updateDomTreeWithResolvedValues(domTree, grid), 2);
+    }
 
     return domTree;
   };
 
-export default computeGridLayout;
+export {
+  computeGridLayout
+};

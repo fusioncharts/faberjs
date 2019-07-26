@@ -1,33 +1,35 @@
-const getDisplayProperty = (domTree) => {
+const ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'],
+  getDisplayProperty = (domTree) => {
     return domTree.style && domTree.style.display;
   },
-  centerify = (axisStart, axisEnd, itemStart, itemSize) => {
-    const itemFreeSpaceStart = itemStart - axisStart,
-      itemEnd = itemStart + itemSize,
-      itemFreeSpaceEnd = axisEnd - itemEnd,
-      totalFreeSpace = itemFreeSpaceStart + itemFreeSpaceEnd;
+  cloneObject = (arg) => {
+    if ((ATOMIC_DATA_TYPE.indexOf(typeof arg) > -1) || arg === null) {
+      return arg;
+    }
 
-    // Item's revised bounds along block axis
-    return {
-      start: axisStart + (totalFreeSpace / 2),
-      end: axisEnd - (totalFreeSpace / 2)
-    };
-  },
-  endify = (axisStart, axisEnd, itemStart, itemSize) => {
-    const itemFreeSpaceStart = itemStart - axisStart,
-      itemEnd = itemStart + itemSize,
-      itemFreeSpaceEnd = axisEnd - itemEnd,
-      totalFreeSpace = itemFreeSpaceStart + itemFreeSpaceEnd;
+    if (Array.isArray(arg)) {
+      let i,
+        len,
+        arr = [];
 
-    // Item's revised bounds along block axis
-    return {
-      start: axisStart + (totalFreeSpace),
-      end: axisStart + totalFreeSpace + itemSize
-    };
+      for (i = 0, len = arg.length; i < len; i++) {
+        arr.push(cloneObject(arg[i]));
+      }
+
+      return arr;
+    } else if (typeof arg === 'object') {
+      let cloneObj = {},
+        key;
+
+      for (key in arg) {
+        cloneObj[key] = cloneObject(arg[key]);
+      }
+
+      return cloneObj;
+    }
   };
 
 export {
-  getDisplayProperty,
-  centerify,
-  endify
+  cloneObject,
+  getDisplayProperty
 };
