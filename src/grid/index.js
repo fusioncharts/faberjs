@@ -1,4 +1,4 @@
-import { getDisplayProperty, getComputeFn } from "../utils";
+import { getDisplayProperty } from "../utils";
 import TrackResolver from "./track-sizing";
 import { CENTER, END, STRETCH } from "../utils/constants";
 
@@ -343,46 +343,47 @@ const replaceWithAbsValue = (styleTrack, calculatedTrack) => {
     }
 
     return domTree;
-  },
-  computeGridLayout = (domTree, count = 1) => {
-    let i,
-      len,
-      child,
-      grid;
-
-    if (!domTree || !domTree.style) {
-      return;
-    }
-
-    if (!domTree.userGivenStyles) {
-      domTree.style.width = isNaN(domTree.style.width) ? 'auto' : domTree.style.width;
-      domTree.style.height = isNaN(domTree.style.height) ? 'auto' : domTree.style.height;
-      domTree.userGivenStyles = {
-        gridTemplateColumns: domTree.style.gridTemplateColumns,
-        gridTemplateRows: domTree.style.gridTemplateRows,
-        width: domTree.style.width,
-        height: domTree.style.height
-      };
-    }
-
-    for (i = 0, len = (domTree.children && domTree.children.length); i < len; i++) {
-      child = domTree.children[i];
-      if (getDisplayProperty(child)) {
-        getComputeFn(getDisplayProperty(child))(child);
-      }
-    }
-
-    grid = new Grid();
-    grid.set('domTree', domTree)
-      .compute();
-
-    if (count < 2) {
-      computeGridLayout(updateDomTreeWithResolvedValues(domTree, grid), 2);
-      domTree.root && grid._updatePositioWRTRoot(domTree);
-    }
-
-    return domTree;
   };
+
+function computeGridLayout (domTree, count = 1) {
+  let i,
+    len,
+    child,
+    grid;
+
+  if (!domTree || !domTree.style) {
+    return;
+  }
+
+  if (!domTree.userGivenStyles) {
+    domTree.style.width = isNaN(domTree.style.width) ? 'auto' : domTree.style.width;
+    domTree.style.height = isNaN(domTree.style.height) ? 'auto' : domTree.style.height;
+    domTree.userGivenStyles = {
+      gridTemplateColumns: domTree.style.gridTemplateColumns,
+      gridTemplateRows: domTree.style.gridTemplateRows,
+      width: domTree.style.width,
+      height: domTree.style.height
+    };
+  }
+
+  for (i = 0, len = (domTree.children && domTree.children.length); i < len; i++) {
+    child = domTree.children[i];
+    if (getDisplayProperty(child)) {
+      this.compute(child);
+    }
+  }
+
+  grid = new Grid();
+  grid.set('domTree', domTree)
+    .compute();
+
+  if (count < 2) {
+    computeGridLayout(updateDomTreeWithResolvedValues(domTree, grid), 2);
+    domTree.root && grid._updatePositioWRTRoot(domTree);
+  }
+
+  return domTree;
+}
 
 export {
   computeGridLayout

@@ -510,8 +510,9 @@ var replaceWithAbsValue = function replaceWithAbsValue(styleTrack, calculatedTra
   }
 
   return domTree;
-},
-    computeGridLayout = function computeGridLayout(domTree) {
+};
+
+function computeGridLayout(domTree) {
   var count = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
   var i, len, child, grid;
 
@@ -534,7 +535,7 @@ var replaceWithAbsValue = function replaceWithAbsValue(styleTrack, calculatedTra
     child = domTree.children[i];
 
     if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(child)) {
-      Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getComputeFn"])(Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(child))(child);
+      this.compute(child);
     }
   }
 
@@ -547,7 +548,7 @@ var replaceWithAbsValue = function replaceWithAbsValue(styleTrack, calculatedTra
   }
 
   return domTree;
-};
+}
 
 
 
@@ -859,25 +860,60 @@ __webpack_require__.r(__webpack_exports__);
 /*!**********************!*\
   !*** ./src/mason.js ***!
   \**********************/
-/*! exports provided: computeLayout, computeLayoutHelper */
+/*! exports provided: computeLayout */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "computeLayout", function() { return computeLayout; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "computeLayoutHelper", function() { return computeLayoutHelper; });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils/index.js");
+/* harmony import */ var _utils_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/constants */ "./src/utils/constants.js");
+/* harmony import */ var _grid__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./grid */ "./src/grid/index.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 
-var computeLayoutHelper = function computeLayoutHelper(domTree) {
-  return Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getComputeFn"])(Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(domTree))(domTree);
-},
-    computeLayout = function computeLayout() {
-  var domTree = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+
+
+var LayoutEngine =
+/*#__PURE__*/
+function () {
+  function LayoutEngine() {
+    _classCallCheck(this, LayoutEngine);
+
+    this.gridLayoutEngine = _grid__WEBPACK_IMPORTED_MODULE_2__["computeGridLayout"];
+  }
+
+  _createClass(LayoutEngine, [{
+    key: "compute",
+    value: function compute(domTree) {
+      switch (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(domTree)) {
+        case _utils_constants__WEBPACK_IMPORTED_MODULE_1__["DISPLAY_GRID"]:
+          return this.gridLayoutEngine(domTree);
+
+        case _utils_constants__WEBPACK_IMPORTED_MODULE_1__["DISPLAY_FLEX"]:
+          return this.gridLayoutEngine(domTree);
+
+        default:
+          // Probably throw unsupported error?
+          return this.gridLayoutEngine(domTree);
+      }
+    }
+  }]);
+
+  return LayoutEngine;
+}();
+
+var computeLayout = function computeLayout(domTree) {
+  var mason = new LayoutEngine();
   var clonedDomTree = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["cloneObject"])(domTree),
       calculatedTree;
   clonedDomTree.root = true;
-  calculatedTree = computeLayoutHelper(clonedDomTree);
+  calculatedTree = mason.compute(clonedDomTree);
   Object(_utils__WEBPACK_IMPORTED_MODULE_0__["attachLayoutInformation"])(domTree, calculatedTree);
   return domTree;
 };
@@ -890,7 +926,7 @@ var computeLayoutHelper = function computeLayoutHelper(domTree) {
 /*!********************************!*\
   !*** ./src/utils/constants.js ***!
   \********************************/
-/*! exports provided: DISPLAY_GRID, DISPLAY_FLEX, CENTER, START, END, STRETCH */
+/*! exports provided: DISPLAY_GRID, DISPLAY_FLEX, CENTER, START, END, STRETCH, ATOMIC_DATA_TYPE */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -901,12 +937,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "START", function() { return START; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "END", function() { return END; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "STRETCH", function() { return STRETCH; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ATOMIC_DATA_TYPE", function() { return ATOMIC_DATA_TYPE; });
 var DISPLAY_GRID = 'grid';
 var DISPLAY_FLEX = 'flex';
 var CENTER = 'center';
 var START = 'start';
 var END = 'end';
 var STRETCH = 'stretch';
+var ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'];
 
 /***/ }),
 
@@ -914,28 +952,24 @@ var STRETCH = 'stretch';
 /*!****************************!*\
   !*** ./src/utils/index.js ***!
   \****************************/
-/*! exports provided: getComputeFn, cloneObject, attachLayoutInformation, getDisplayProperty */
+/*! exports provided: cloneObject, attachLayoutInformation, getDisplayProperty */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getComputeFn", function() { return getComputeFn; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cloneObject", function() { return cloneObject; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "attachLayoutInformation", function() { return attachLayoutInformation; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDisplayProperty", function() { return getDisplayProperty; });
 /* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./src/utils/constants.js");
-/* harmony import */ var _grid__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../grid */ "./src/grid/index.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 
 
-
-var ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'],
-    getDisplayProperty = function getDisplayProperty(domTree) {
+var getDisplayProperty = function getDisplayProperty(domTree) {
   return domTree.style && domTree.style.display;
 },
     cloneObject = function cloneObject(arg) {
-  if (ATOMIC_DATA_TYPE.indexOf(_typeof(arg)) > -1 || arg === null) {
+  if (_constants__WEBPACK_IMPORTED_MODULE_0__["ATOMIC_DATA_TYPE"].indexOf(_typeof(arg)) > -1 || arg === null) {
     return arg;
   }
 
@@ -958,19 +992,6 @@ var ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'],
     }
 
     return cloneObj;
-  }
-},
-    getComputeFn = function getComputeFn(display) {
-  switch (display) {
-    case _constants__WEBPACK_IMPORTED_MODULE_0__["DISPLAY_GRID"]:
-      return _grid__WEBPACK_IMPORTED_MODULE_1__["computeGridLayout"];
-
-    case _constants__WEBPACK_IMPORTED_MODULE_0__["DISPLAY_FLEX"]:
-      return _grid__WEBPACK_IMPORTED_MODULE_1__["computeGridLayout"];
-
-    default:
-      // Probably throw unsupported error?
-      return _grid__WEBPACK_IMPORTED_MODULE_1__["computeGridLayout"];
   }
 },
     attachLayoutInformation = function attachLayoutInformation() {
