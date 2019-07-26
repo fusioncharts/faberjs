@@ -39,10 +39,21 @@ const ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'
       // Probably throw unsupported error?
       return computeGridLayout;
     }
+  },
+  attachLayoutInformation = (baseTree = {}, calculatedTree = {}) => {
+    let i,
+      len;
+
+    baseTree.layout = calculatedTree.layout;
+
+    for (i = 0, len = (baseTree.children || []).length; i < len; i++) {
+      attachLayoutInformation(baseTree.children[i], calculatedTree.children[i]);
+    }
   };
 
 export {
   getComputeFn,
   cloneObject,
+  attachLayoutInformation,
   getDisplayProperty
 };

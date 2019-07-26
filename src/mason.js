@@ -1,12 +1,17 @@
-import { getDisplayProperty, cloneObject, getComputeFn } from "./utils";
+import { getDisplayProperty, cloneObject, getComputeFn, attachLayoutInformation } from "./utils";
 
 const computeLayoutHelper = domTree => {
     return getComputeFn(getDisplayProperty(domTree))(domTree);
   },
   computeLayout = (domTree = {}) => {
-    let clonedDomTree = cloneObject(domTree);
+    let clonedDomTree = cloneObject(domTree),
+      calculatedTree;
 
-    return computeLayoutHelper(clonedDomTree);
+    clonedDomTree.root = true;
+    calculatedTree = computeLayoutHelper(clonedDomTree);
+    attachLayoutInformation(domTree, calculatedTree);
+
+    return domTree;
   };
 
 export {

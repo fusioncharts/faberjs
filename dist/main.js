@@ -357,6 +357,8 @@ function () {
       }
 
       domTree.layout = {
+        x: 0,
+        y: 0,
         width: isNaN(domTree.style.width) ? colTrackdp[colTrackdp.length - 1] : domTree.style.width,
         height: isNaN(domTree.style.height) ? rowTrackdp[rowTrackdp.length - 1] : domTree.style.height
       };
@@ -411,6 +413,26 @@ function () {
           width: width,
           height: height
         };
+      });
+    }
+  }, {
+    key: "_updatePositioWRTRoot",
+    value: function _updatePositioWRTRoot(_domTree) {
+      var _this = this;
+
+      var domTree = _domTree || this.props.domTree,
+          children = domTree.children || [];
+      domTree.layout.x = domTree.layout.x || 0;
+      domTree.layout.y = domTree.layout.y || 0;
+      children.forEach(function (child) {
+        child.layout.x = (child.layout.x || 0) + domTree.layout.x;
+        child.layout.x2 = (child.layout.x2 || 0) + domTree.layout.x;
+        child.layout.y = (child.layout.y || 0) + domTree.layout.y;
+        child.layout.y2 = (child.layout.y2 || 0) + domTree.layout.y;
+
+        if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(child) === 'grid') {
+          _this._updatePositioWRTRoot(child);
+        }
       });
     }
   }]);
@@ -521,6 +543,7 @@ var replaceWithAbsValue = function replaceWithAbsValue(styleTrack, calculatedTra
 
   if (count < 2) {
     computeGridLayout(updateDomTreeWithResolvedValues(domTree, grid), 2);
+    domTree.root && grid._updatePositioWRTRoot(domTree);
   }
 
   return domTree;
@@ -868,8 +891,12 @@ var getComputeFn = function getComputeFn(display) {
 },
     computeLayout = function computeLayout() {
   var domTree = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  var clonedDomTree = Object(_utils__WEBPACK_IMPORTED_MODULE_2__["cloneObject"])(domTree);
-  return computeLayoutHelper(clonedDomTree);
+  var clonedDomTree = Object(_utils__WEBPACK_IMPORTED_MODULE_2__["cloneObject"])(domTree),
+      calculatedTree;
+  clonedDomTree.root = true;
+  calculatedTree = computeLayoutHelper(clonedDomTree);
+  Object(_utils__WEBPACK_IMPORTED_MODULE_2__["attachLayoutInformation"])(domTree, calculatedTree);
+  return domTree;
 };
 
 
@@ -904,12 +931,13 @@ var STRETCH = 'stretch';
 /*!****************************!*\
   !*** ./src/utils/index.js ***!
   \****************************/
-/*! exports provided: cloneObject, getDisplayProperty */
+/*! exports provided: cloneObject, attachLayoutInformation, getDisplayProperty */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cloneObject", function() { return cloneObject; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "attachLayoutInformation", function() { return attachLayoutInformation; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDisplayProperty", function() { return getDisplayProperty; });
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -941,6 +969,16 @@ var ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'],
     }
 
     return cloneObj;
+  }
+},
+    attachLayoutInformation = function attachLayoutInformation() {
+  var baseTree = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  var calculatedTree = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var i, len;
+  baseTree.layout = calculatedTree.layout;
+
+  for (i = 0, len = (baseTree.children || []).length; i < len; i++) {
+    attachLayoutInformation(baseTree.children[i], calculatedTree.children[i]);
   }
 };
 
