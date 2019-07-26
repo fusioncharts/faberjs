@@ -107,9 +107,8 @@ return /******/ (function(modules) { // webpackBootstrap
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "computeGridLayout", function() { return computeGridLayout; });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils */ "./src/utils/index.js");
-/* harmony import */ var _mason__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../mason */ "./src/mason.js");
-/* harmony import */ var _track_sizing__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./track-sizing */ "./src/grid/track-sizing.js");
-/* harmony import */ var _utils_constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/constants */ "./src/utils/constants.js");
+/* harmony import */ var _track_sizing__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./track-sizing */ "./src/grid/track-sizing.js");
+/* harmony import */ var _utils_constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/constants */ "./src/utils/constants.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -121,7 +120,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
 
 
 
@@ -140,7 +138,7 @@ function () {
   _createClass(Grid, [{
     key: "setup",
     value: function setup() {
-      this._tsa = new _track_sizing__WEBPACK_IMPORTED_MODULE_2__["default"]();
+      this._tsa = new _track_sizing__WEBPACK_IMPORTED_MODULE_1__["default"]();
       this.props = {};
       this._config = {
         mapping: {}
@@ -302,7 +300,7 @@ function () {
           rowTracks = _this$_config.rowTracks,
           sizedTracks,
           domTree = this.props.domTree,
-          tsa = new _track_sizing__WEBPACK_IMPORTED_MODULE_2__["default"]();
+          tsa = new _track_sizing__WEBPACK_IMPORTED_MODULE_1__["default"]();
       sizedTracks = tsa.clear().set('tracks', colTracks).set('items', sanitizedItems.map(function (item) {
         return {
           start: item.colStart,
@@ -370,15 +368,15 @@ function () {
         height = isNaN(+child.style.height) ? trackHeight : +child.style.height;
 
         switch (justifyItems || child.style.justifySelf) {
-          case _utils_constants__WEBPACK_IMPORTED_MODULE_3__["CENTER"]:
+          case _utils_constants__WEBPACK_IMPORTED_MODULE_2__["CENTER"]:
             x = colTrackdp[item.colStart - 1] + trackWidth / 2 - width / 2;
             break;
 
-          case _utils_constants__WEBPACK_IMPORTED_MODULE_3__["END"]:
+          case _utils_constants__WEBPACK_IMPORTED_MODULE_2__["END"]:
             x = colTrackdp[item.colEnd - 1] - width;
             break;
 
-          case _utils_constants__WEBPACK_IMPORTED_MODULE_3__["STRETCH"]:
+          case _utils_constants__WEBPACK_IMPORTED_MODULE_2__["STRETCH"]:
             width = trackWidth;
             x = colTrackdp[item.colStart - 1];
             break;
@@ -388,15 +386,15 @@ function () {
         }
 
         switch (alignItems || child.style.alignSelf) {
-          case _utils_constants__WEBPACK_IMPORTED_MODULE_3__["CENTER"]:
+          case _utils_constants__WEBPACK_IMPORTED_MODULE_2__["CENTER"]:
             y = rowTrackdp[item.rowStart - 1] + trackHeight / 2 - height / 2;
             break;
 
-          case _utils_constants__WEBPACK_IMPORTED_MODULE_3__["END"]:
+          case _utils_constants__WEBPACK_IMPORTED_MODULE_2__["END"]:
             y = rowTrackdp[item.rowEnd - 1] - height;
             break;
 
-          case _utils_constants__WEBPACK_IMPORTED_MODULE_3__["STRETCH"]:
+          case _utils_constants__WEBPACK_IMPORTED_MODULE_2__["STRETCH"]:
             height = trackHeight;
             y = rowTrackdp[item.rowStart - 1];
             break;
@@ -441,7 +439,9 @@ function () {
 }();
 
 var replaceWithAbsValue = function replaceWithAbsValue(styleTrack, calculatedTrack) {
-  var trackSplitAr = styleTrack.split(' '),
+  var trackSplitAr = styleTrack.split(' ').filter(function (track) {
+    return !!track.trim();
+  }),
       trackWithAbsValue = '',
       counter = 1;
   trackSplitAr.forEach(function (track) {
@@ -534,7 +534,7 @@ var replaceWithAbsValue = function replaceWithAbsValue(styleTrack, calculatedTra
     child = domTree.children[i];
 
     if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(child)) {
-      Object(_mason__WEBPACK_IMPORTED_MODULE_1__["computeLayoutHelper"])(child, domTree);
+      Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getComputeFn"])(Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(child))(child);
     }
   }
 
@@ -866,36 +866,19 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "computeLayout", function() { return computeLayout; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "computeLayoutHelper", function() { return computeLayoutHelper; });
-/* harmony import */ var _grid__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./grid */ "./src/grid/index.js");
-/* harmony import */ var _utils_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/constants */ "./src/utils/constants.js");
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils */ "./src/utils/index.js");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils/index.js");
 
 
-
-
-var getComputeFn = function getComputeFn(display) {
-  switch (display) {
-    case _utils_constants__WEBPACK_IMPORTED_MODULE_1__["DISPLAY_GRID"]:
-      return _grid__WEBPACK_IMPORTED_MODULE_0__["computeGridLayout"];
-
-    case _utils_constants__WEBPACK_IMPORTED_MODULE_1__["DISPLAY_FLEX"]:
-      return _grid__WEBPACK_IMPORTED_MODULE_0__["computeGridLayout"];
-
-    default:
-      // Probably throw unsupported error?
-      return _grid__WEBPACK_IMPORTED_MODULE_0__["computeGridLayout"];
-  }
-},
-    computeLayoutHelper = function computeLayoutHelper(domTree) {
-  return getComputeFn(Object(_utils__WEBPACK_IMPORTED_MODULE_2__["getDisplayProperty"])(domTree))(domTree);
+var computeLayoutHelper = function computeLayoutHelper(domTree) {
+  return Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getComputeFn"])(Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(domTree))(domTree);
 },
     computeLayout = function computeLayout() {
   var domTree = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  var clonedDomTree = Object(_utils__WEBPACK_IMPORTED_MODULE_2__["cloneObject"])(domTree),
+  var clonedDomTree = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["cloneObject"])(domTree),
       calculatedTree;
   clonedDomTree.root = true;
   calculatedTree = computeLayoutHelper(clonedDomTree);
-  Object(_utils__WEBPACK_IMPORTED_MODULE_2__["attachLayoutInformation"])(domTree, calculatedTree);
+  Object(_utils__WEBPACK_IMPORTED_MODULE_0__["attachLayoutInformation"])(domTree, calculatedTree);
   return domTree;
 };
 
@@ -931,15 +914,21 @@ var STRETCH = 'stretch';
 /*!****************************!*\
   !*** ./src/utils/index.js ***!
   \****************************/
-/*! exports provided: cloneObject, attachLayoutInformation, getDisplayProperty */
+/*! exports provided: getComputeFn, cloneObject, attachLayoutInformation, getDisplayProperty */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getComputeFn", function() { return getComputeFn; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cloneObject", function() { return cloneObject; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "attachLayoutInformation", function() { return attachLayoutInformation; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDisplayProperty", function() { return getDisplayProperty; });
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./src/utils/constants.js");
+/* harmony import */ var _grid__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../grid */ "./src/grid/index.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+
+
 
 var ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'],
     getDisplayProperty = function getDisplayProperty(domTree) {
@@ -969,6 +958,19 @@ var ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'],
     }
 
     return cloneObj;
+  }
+},
+    getComputeFn = function getComputeFn(display) {
+  switch (display) {
+    case _constants__WEBPACK_IMPORTED_MODULE_0__["DISPLAY_GRID"]:
+      return _grid__WEBPACK_IMPORTED_MODULE_1__["computeGridLayout"];
+
+    case _constants__WEBPACK_IMPORTED_MODULE_0__["DISPLAY_FLEX"]:
+      return _grid__WEBPACK_IMPORTED_MODULE_1__["computeGridLayout"];
+
+    default:
+      // Probably throw unsupported error?
+      return _grid__WEBPACK_IMPORTED_MODULE_1__["computeGridLayout"];
   }
 },
     attachLayoutInformation = function attachLayoutInformation() {

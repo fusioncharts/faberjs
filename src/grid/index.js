@@ -1,5 +1,4 @@
-import { getDisplayProperty } from "../utils";
-import { computeLayoutHelper } from "../mason";
+import { getDisplayProperty, getComputeFn } from "../utils";
 import TrackResolver from "./track-sizing";
 import { CENTER, END, STRETCH } from "../utils/constants";
 
@@ -369,7 +368,7 @@ const replaceWithAbsValue = (styleTrack, calculatedTrack) => {
     for (i = 0, len = (domTree.children && domTree.children.length); i < len; i++) {
       child = domTree.children[i];
       if (getDisplayProperty(child)) {
-        computeLayoutHelper(child, domTree);
+        getComputeFn(getDisplayProperty(child))(child);
       }
     }
 
