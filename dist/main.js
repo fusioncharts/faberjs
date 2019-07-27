@@ -725,6 +725,7 @@ function () {
     value: function _initItems(_items) {
       var items = _items || this.props.items || [],
           sanitizedItems = [],
+          nonSpanningItemStartIndex,
           item,
           i,
           len;
@@ -740,9 +741,18 @@ function () {
             gap2 = b.end - b.start;
 
         if (gap1 === gap2) {
-          return a.start < b.start;
-        } else return gap1 < gap2;
+          return a.start - b.start;
+        } else return gap1 - gap2;
       });
+
+      for (i = 0, nonSpanningItemStartIndex = len; i < len; i++) {
+        if (sanitizedItems[i].end - sanitizedItems[i].start > 1) {
+          nonSpanningItemStartIndex = i;
+          break;
+        }
+      }
+
+      this._config.nonSpanningItemStartIndex = nonSpanningItemStartIndex;
       return this._config.sanitizedItems = sanitizedItems;
     }
   }, {
@@ -772,9 +782,8 @@ function () {
       var _this$_config = this._config,
           sanitizedItems = _this$_config.sanitizedItems,
           sanitizedTracks = _this$_config.sanitizedTracks,
-          nonSpanningItems = sanitizedItems.filter(function (item) {
-        return item.end - item.start === 1;
-      }),
+          nonSpanningItemStartIndex = _this$_config.nonSpanningItemStartIndex,
+          nonSpanningItems = sanitizedItems.slice(0, nonSpanningItemStartIndex),
           track,
           trackIndex;
       nonSpanningItems.forEach(function (item) {
@@ -791,15 +800,59 @@ function () {
   }, {
     key: "_placeSpanningItems",
     value: function _placeSpanningItems() {
+      var _this$_config2 = this._config,
+          sanitizedItems = _this$_config2.sanitizedItems,
+          sanitizedTracks = _this$_config2.sanitizedTracks,
+          nonSpanningItemStartIndex = _this$_config2.nonSpanningItemStartIndex,
+          frTracks = _this$_config2.frTracks,
+          spanningItems = sanitizedItems.slice(nonSpanningItemStartIndex),
+          trackSizedp = [0],
+          sizeConsumed,
+          sizeLeft,
+          sizePerTrack,
+          availableTracks,
+          hasFrTrack,
+          i,
+          len;
+      if (!spanningItems.length) return this;
+
+      for (i = 1, len = sanitizedTracks.length; i < len; i++) {
+        trackSizedp[i] = trackSizedp[i - 1] + (sanitizedTracks[i].baseSize || 0);
+      }
+
+      spanningItems.forEach(function (item) {
+        sizeConsumed = trackSizedp[item.end - 1] - trackSizedp[item.start - 1];
+        sizeLeft = Math.max(0, item.size - sizeConsumed);
+        if (!sizeLeft) return;
+
+        for (i = item.start, hasFrTrack = false, availableTracks = 0; i < item.end; i++) {
+          if (frTracks.indexOf(i) >= 0) {
+            hasFrTrack = true;
+          }
+
+          if (sanitizedTracks[i].type !== 'fixed') {
+            availableTracks++;
+          }
+        }
+
+        if (!availableTracks || hasFrTrack) return;
+        sizePerTrack = sizeLeft / availableTracks;
+
+        for (i = item.start; i < item.end; i++) {
+          if (sanitizedTracks[i].type !== 'fixed') {
+            sanitizedTracks[i].baseSize += sizePerTrack;
+          }
+        }
+      });
       return this;
     }
   }, {
     key: "_distributeFreeSpace",
     value: function _distributeFreeSpace() {
-      var _this$_config2 = this._config,
-          frTracks = _this$_config2.frTracks,
-          intrinsicTracks = _this$_config2.intrinsicTracks,
-          sanitizedTracks = _this$_config2.sanitizedTracks,
+      var _this$_config3 = this._config,
+          frTracks = _this$_config3.frTracks,
+          intrinsicTracks = _this$_config3.intrinsicTracks,
+          sanitizedTracks = _this$_config3.sanitizedTracks,
           containerSize = this.props.containerSize,
           totalSpaceUsed = 0;
       sanitizedTracks.forEach(function (track) {
