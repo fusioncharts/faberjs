@@ -550,7 +550,7 @@ function computeGridLayout(domTree) {
   grid.set('domTree', domTree).compute();
 
   if (count < 2) {
-    computeGridLayout(updateDomTreeWithResolvedValues(domTree, grid), 2);
+    this.gridLayoutEngine(updateDomTreeWithResolvedValues(domTree, grid), 2);
     domTree.root && grid._updatePositioWRTRoot(domTree);
   }
 
