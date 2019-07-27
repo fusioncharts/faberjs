@@ -1,5 +1,6 @@
-const ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'],
-  getDisplayProperty = (domTree) => {
+import { ATOMIC_DATA_TYPE } from "./constants";
+
+const getDisplayProperty = (domTree) => {
     return domTree.style && domTree.style.display;
   },
   cloneObject = (arg) => {

@@ -7,7 +7,14 @@
     "start": "webpack-dev-server --host=0.0.0.0 --port 9000 --hot --config webpack.config.js",
     "build": "webpack --mode=production",
     "watch": "webpack --watch --mode=development",
-    "lint": "npx eslint src/"
+    "lint": "npx eslint src/",
+    "test": "jest"
+  },
+  "pre-commit": {
+    "run": [
+      "lint",
+      "test"
+    ]
   },
   "repository": {
     "type": "git",
@@ -35,8 +42,12 @@
     "@babel/preset-env": "^7.5.5",
     "babel-loader": "^8.0.6",
     "eslint": "^6.0.1",
+    "jest": "^24.8.0",
     "webpack": "^4.36.1",
     "webpack-cli": "^3.3.6",
     "webpack-dev-server": "^3.7.2"
+  },
+  "dependencies": {
+    "pre-commit": "^1.2.2"
   }
 }
