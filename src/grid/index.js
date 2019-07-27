@@ -125,7 +125,8 @@ class Grid {
   }
 
   _sanitizeItems (_domTree) {
-    let items = (_domTree || this.props.domTree).children || [],
+    let domTree = (_domTree || this.props.domTree),
+      items = domTree.children || [],
       mapping = this._config.mapping,
       sanitizedItems = [],
       itemStyle,
@@ -155,6 +156,8 @@ class Grid {
   _inflateTracks () {
     let { sanitizedItems, colTracks, rowTracks } = this._config,
       sizedTracks,
+      minHeightContribution = 0,
+      minWidthContribution = 0,
       { domTree } = this.props,
       tsa = new TrackResolver();
 
@@ -163,24 +166,33 @@ class Grid {
       .set('items', sanitizedItems.map(item => ({
         start: item.colStart,
         end: item.colEnd,
-        size: (item.style && item.style.width) || 'auto'
+        size: (item.style && (item.style.minWidthContribution || item.style.width)) || 'auto'
       })))
       .set('containerSize', (domTree.style && domTree.style.width) || 'auto')
       .resolveTracks();
 
-    colTracks.forEach((track, index) => track.calculatedStyle = sizedTracks[index]);
+    colTracks.forEach((track, index) => {
+      track.calculatedStyle = sizedTracks[index];
+      minWidthContribution += sizedTracks[index].baseSize || 0;
+    });
 
     sizedTracks = tsa.clear()
       .set('tracks', rowTracks)
       .set('items', sanitizedItems.map(item => ({
         start: item.rowStart,
         end: item.rowEnd,
-        size: (item.style && item.style.height) || 'auto'
+        size: (item.style && (item.style.minHeightContribution || item.style.height)) || 'auto'
       })))
       .set('containerSize', (domTree.style && domTree.style.height) || 'auto')
       .resolveTracks();
 
-    rowTracks.forEach((track, index) => track.calculatedStyle = sizedTracks[index]);
+    rowTracks.forEach((track, index) => {
+      track.calculatedStyle = sizedTracks[index];
+      minHeightContribution += sizedTracks[index].baseSize || 0;
+    });
+
+    domTree.style.minHeightContribution = minHeightContribution;
+    domTree.style.minWidthContribution = minWidthContribution;
     return this;
   }
 
@@ -213,7 +225,7 @@ class Grid {
       width: isNaN(domTree.style.width) ? colTrackdp[colTrackdp.length - 1] : domTree.style.width,
       height: isNaN(domTree.style.height) ? rowTrackdp[rowTrackdp.length - 1] : domTree.style.height
     };
-    domTree.children.forEach((child, index) => {
+    (domTree.children || []).forEach((child, index) => {
       item = sanitizedItems[index];
       trackWidth = colTrackdp[item.colEnd - 1] - colTrackdp[item.colStart - 1];
       trackHeight = rowTrackdp[item.rowEnd - 1] - rowTrackdp[item.rowStart - 1];
@@ -311,7 +323,7 @@ const replaceWithAbsValue = (styleTrack, calculatedTrack) => {
     domTree.style.gridTemplateRows = replaceWithAbsValue(gridTemplateRows, rowTracks);
     domTree.style.gridTemplateColumns = replaceWithAbsValue(gridTemplateColumns, colTracks);
 
-    for (i = 0, len = domTree.children.length; i < len; i++) {
+    for (i = 0, len = (domTree.children || []).length; i < len; i++) {
       child = domTree.children[i];
       if (getDisplayProperty(child)) {
         child.style.gridTemplateColumns = child.userGivenStyles.gridTemplateColumns;

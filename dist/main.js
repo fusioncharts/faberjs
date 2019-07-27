@@ -268,7 +268,8 @@ function () {
   }, {
     key: "_sanitizeItems",
     value: function _sanitizeItems(_domTree) {
-      var items = (_domTree || this.props.domTree).children || [],
+      var domTree = _domTree || this.props.domTree,
+          items = domTree.children || [],
           mapping = this._config.mapping,
           sanitizedItems = [],
           itemStyle,
@@ -301,28 +302,34 @@ function () {
           colTracks = _this$_config.colTracks,
           rowTracks = _this$_config.rowTracks,
           sizedTracks,
+          minHeightContribution = 0,
+          minWidthContribution = 0,
           domTree = this.props.domTree,
           tsa = new _track_sizing__WEBPACK_IMPORTED_MODULE_2__["default"]();
       sizedTracks = tsa.clear().set('tracks', colTracks).set('items', sanitizedItems.map(function (item) {
         return {
           start: item.colStart,
           end: item.colEnd,
-          size: item.style && item.style.width || 'auto'
+          size: item.style && (item.style.minWidthContribution || item.style.width) || 'auto'
         };
       })).set('containerSize', domTree.style && domTree.style.width || 'auto').resolveTracks();
       colTracks.forEach(function (track, index) {
-        return track.calculatedStyle = sizedTracks[index];
+        track.calculatedStyle = sizedTracks[index];
+        minWidthContribution += sizedTracks[index].baseSize || 0;
       });
       sizedTracks = tsa.clear().set('tracks', rowTracks).set('items', sanitizedItems.map(function (item) {
         return {
           start: item.rowStart,
           end: item.rowEnd,
-          size: item.style && item.style.height || 'auto'
+          size: item.style && (item.style.minHeightContribution || item.style.height) || 'auto'
         };
       })).set('containerSize', domTree.style && domTree.style.height || 'auto').resolveTracks();
       rowTracks.forEach(function (track, index) {
-        return track.calculatedStyle = sizedTracks[index];
+        track.calculatedStyle = sizedTracks[index];
+        minHeightContribution += sizedTracks[index].baseSize || 0;
       });
+      domTree.style.minHeightContribution = minHeightContribution;
+      domTree.style.minWidthContribution = minWidthContribution;
       return this;
     }
   }, {
@@ -362,7 +369,7 @@ function () {
         width: isNaN(domTree.style.width) ? colTrackdp[colTrackdp.length - 1] : domTree.style.width,
         height: isNaN(domTree.style.height) ? rowTrackdp[rowTrackdp.length - 1] : domTree.style.height
       };
-      domTree.children.forEach(function (child, index) {
+      (domTree.children || []).forEach(function (child, index) {
         item = sanitizedItems[index];
         trackWidth = colTrackdp[item.colEnd - 1] - colTrackdp[item.colStart - 1];
         trackHeight = rowTrackdp[item.rowEnd - 1] - rowTrackdp[item.rowStart - 1];
@@ -474,7 +481,7 @@ var replaceWithAbsValue = function replaceWithAbsValue(styleTrack, calculatedTra
   domTree.style.gridTemplateRows = replaceWithAbsValue(gridTemplateRows, rowTracks);
   domTree.style.gridTemplateColumns = replaceWithAbsValue(gridTemplateColumns, colTracks);
 
-  for (i = 0, len = domTree.children.length; i < len; i++) {
+  for (i = 0, len = (domTree.children || []).length; i < len; i++) {
     child = domTree.children[i];
 
     if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(child)) {
