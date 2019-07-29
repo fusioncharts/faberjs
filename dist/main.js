@@ -303,25 +303,42 @@ function () {
           minHeightContribution = 0,
           minWidthContribution = 0,
           domTree = this.props.domTree,
+          _ref = domTree.style || {},
+          paddingStart = _ref.paddingStart,
+          paddingEnd = _ref.paddingEnd,
+          paddingTop = _ref.paddingTop,
+          paddingBottom = _ref.paddingBottom,
+          width = _ref.width,
+          height = _ref.height,
           tsa = new _track_sizing__WEBPACK_IMPORTED_MODULE_1__["default"]();
+
+      if (!isNaN(+width)) {
+        width -= paddingStart + paddingEnd;
+      }
+
       sizedTracks = tsa.clear().set('tracks', colTracks).set('items', sanitizedItems.map(function (item) {
         return {
           start: item.colStart,
           end: item.colEnd,
           size: item.style && (item.style.minWidthContribution || item.style.width) || 'auto'
         };
-      })).set('containerSize', domTree.style && domTree.style.width || 'auto').resolveTracks();
+      })).set('containerSize', width || 'auto').resolveTracks();
       colTracks.forEach(function (track, index) {
         track.calculatedStyle = sizedTracks[index];
         minWidthContribution += sizedTracks[index].baseSize || 0;
       });
+
+      if (!isNaN(+height)) {
+        height -= paddingTop + paddingBottom;
+      }
+
       sizedTracks = tsa.clear().set('tracks', rowTracks).set('items', sanitizedItems.map(function (item) {
         return {
           start: item.rowStart,
           end: item.rowEnd,
           size: item.style && (item.style.minHeightContribution || item.style.height) || 'auto'
         };
-      })).set('containerSize', domTree.style && domTree.style.height || 'auto').resolveTracks();
+      })).set('containerSize', height || 'auto').resolveTracks();
       rowTracks.forEach(function (track, index) {
         track.calculatedStyle = sizedTracks[index];
         minHeightContribution += sizedTracks[index].baseSize || 0;
@@ -344,14 +361,18 @@ function () {
           _domTree$style = domTree.style,
           justifyItems = _domTree$style.justifyItems,
           alignItems = _domTree$style.alignItems,
+          paddingStart = _domTree$style.paddingStart,
+          paddingEnd = _domTree$style.paddingEnd,
+          paddingTop = _domTree$style.paddingTop,
+          paddingBottom = _domTree$style.paddingBottom,
           trackWidth,
           trackHeight,
           width,
           height,
           x,
           y,
-          rowTrackdp = [0],
-          colTrackdp = [0];
+          rowTrackdp = [paddingStart],
+          colTrackdp = [paddingTop];
 
       for (i = 1, len = rowTracks.length; i < len; i++) {
         rowTrackdp[i] = rowTrackdp[i - 1] + rowTracks[i].calculatedStyle.baseSize;
@@ -410,6 +431,8 @@ function () {
             y = rowTrackdp[item.rowStart - 1];
         }
 
+        x += Object(_utils__WEBPACK_IMPORTED_MODULE_0__["pluckNumber"])(item.style.paddingStart, item.style.padding, 0);
+        y += Object(_utils__WEBPACK_IMPORTED_MODULE_0__["pluckNumber"])(item.style.paddingTop, item.style.padding, 0);
         child.layout = {
           x: x,
           y: y,
@@ -521,7 +544,11 @@ var replaceWithAbsValue = function replaceWithAbsValue(styleTrack, calculatedTra
 
 function computeGridLayout(domTree) {
   var count = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-  var i, len, child, grid;
+  var i,
+      len,
+      style = domTree.style,
+      child,
+      grid;
 
   if (!domTree || !domTree.style) {
     return;
@@ -530,6 +557,10 @@ function computeGridLayout(domTree) {
   if (!domTree.userGivenStyles) {
     domTree.style.width = isNaN(domTree.style.width) ? 'auto' : domTree.style.width;
     domTree.style.height = isNaN(domTree.style.height) ? 'auto' : domTree.style.height;
+    style.paddingStart = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["pluckNumber"])(style.paddingStart, style.padding, 0);
+    style.paddingEnd = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["pluckNumber"])(style.paddingEnd, style.padding, 0);
+    style.paddingTop = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["pluckNumber"])(style.paddingTop, style.padding, 0);
+    style.paddingBottom = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["pluckNumber"])(style.paddingBottom, style.padding, 0);
     domTree.userGivenStyles = {
       gridTemplateColumns: domTree.style.gridTemplateColumns,
       gridTemplateRows: domTree.style.gridTemplateRows,
@@ -1021,7 +1052,7 @@ var ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'];
 /*!****************************!*\
   !*** ./src/utils/index.js ***!
   \****************************/
-/*! exports provided: cloneObject, attachLayoutInformation, getDisplayProperty */
+/*! exports provided: cloneObject, attachLayoutInformation, getDisplayProperty, pluckNumber */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1029,6 +1060,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cloneObject", function() { return cloneObject; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "attachLayoutInformation", function() { return attachLayoutInformation; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDisplayProperty", function() { return getDisplayProperty; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "pluckNumber", function() { return pluckNumber; });
 /* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./src/utils/constants.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -1072,6 +1104,23 @@ var getDisplayProperty = function getDisplayProperty(domTree) {
   for (i = 0, len = (baseTree.children || []).length; i < len; i++) {
     attachLayoutInformation(baseTree.children[i], calculatedTree.children[i]);
   }
+},
+    pluckNumber = function pluckNumber() {
+  var arg, i, l;
+
+  for (i = 0, l = arguments.length; i < l; i += 1) {
+    arg = arguments[i];
+
+    if (!arg && arg !== false && arg !== 0) {
+      continue;
+    } else if (isNaN(arg = Number(arg))) {
+      continue;
+    }
+
+    return arg;
+  }
+
+  return UNDEF;
 };
 
 

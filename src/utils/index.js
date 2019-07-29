@@ -38,10 +38,27 @@ const getDisplayProperty = (domTree) => {
     for (i = 0, len = (baseTree.children || []).length; i < len; i++) {
       attachLayoutInformation(baseTree.children[i], calculatedTree.children[i]);
     }
+  },
+  pluckNumber = function () {
+    var arg,
+      i,
+      l;
+
+    for (i = 0, l = arguments.length; i < l; i += 1) {
+      arg = arguments[i];
+      if (!arg && arg !== false && arg !== 0) {
+        continue;
+      } else if (isNaN(arg = Number(arg))) {
+        continue;
+      }
+      return arg;
+    }
+    return UNDEF;
   };
 
 export {
   cloneObject,
   attachLayoutInformation,
-  getDisplayProperty
+  getDisplayProperty,
+  pluckNumber
 };

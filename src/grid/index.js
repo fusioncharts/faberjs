@@ -1,4 +1,4 @@
-import { getDisplayProperty } from "../utils";
+import { getDisplayProperty, pluckNumber } from "../utils";
 import TrackResolver from "./track-sizing";
 import { CENTER, END, STRETCH } from "../utils/constants";
 
@@ -158,8 +158,12 @@ class Grid {
       minHeightContribution = 0,
       minWidthContribution = 0,
       { domTree } = this.props,
+      { paddingStart, paddingEnd, paddingTop, paddingBottom, width, height } = domTree.style || {},
       tsa = new TrackResolver();
 
+    if (!isNaN(+width)) {
+      width -= (paddingStart + paddingEnd);
+    }
     sizedTracks = tsa.clear()
       .set('tracks', colTracks)
       .set('items', sanitizedItems.map(item => ({
@@ -167,7 +171,7 @@ class Grid {
         end: item.colEnd,
         size: (item.style && (item.style.minWidthContribution || item.style.width)) || 'auto'
       })))
-      .set('containerSize', (domTree.style && domTree.style.width) || 'auto')
+      .set('containerSize', width || 'auto')
       .resolveTracks();
 
     colTracks.forEach((track, index) => {
@@ -175,6 +179,9 @@ class Grid {
       minWidthContribution += sizedTracks[index].baseSize || 0;
     });
 
+    if (!isNaN(+height)) {
+      height -= (paddingTop + paddingBottom);
+    }
     sizedTracks = tsa.clear()
       .set('tracks', rowTracks)
       .set('items', sanitizedItems.map(item => ({
@@ -182,7 +189,7 @@ class Grid {
         end: item.rowEnd,
         size: (item.style && (item.style.minHeightContribution || item.style.height)) || 'auto'
       })))
-      .set('containerSize', (domTree.style && domTree.style.height) || 'auto')
+      .set('containerSize', height || 'auto')
       .resolveTracks();
 
     rowTracks.forEach((track, index) => {
@@ -201,15 +208,15 @@ class Grid {
       item,
       len,
       i,
-      { justifyItems, alignItems } = domTree.style,
+      { justifyItems, alignItems, paddingStart, paddingEnd, paddingTop, paddingBottom } = domTree.style,
       trackWidth,
       trackHeight,
       width,
       height,
       x,
       y,
-      rowTrackdp = [0],
-      colTrackdp = [0];
+      rowTrackdp = [paddingStart],
+      colTrackdp = [paddingTop];
 
     for (i = 1, len = rowTracks.length; i < len; i++) {
       rowTrackdp[i] = rowTrackdp[i - 1] + rowTracks[i].calculatedStyle.baseSize;
@@ -255,6 +262,10 @@ class Grid {
       default:
         y = rowTrackdp[item.rowStart - 1];
       }
+
+      x += pluckNumber(item.style.paddingStart, item.style.padding, 0);
+      y += pluckNumber(item.style.paddingTop, item.style.padding, 0);
+
       child.layout = {
         x,
         y,
@@ -360,6 +371,7 @@ const replaceWithAbsValue = (styleTrack, calculatedTrack) => {
 function computeGridLayout (domTree, count = 1) {
   let i,
     len,
+    style = domTree.style,
     child,
     grid;
 
@@ -370,6 +382,12 @@ function computeGridLayout (domTree, count = 1) {
   if (!domTree.userGivenStyles) {
     domTree.style.width = isNaN(domTree.style.width) ? 'auto' : domTree.style.width;
     domTree.style.height = isNaN(domTree.style.height) ? 'auto' : domTree.style.height;
+
+    style.paddingStart = pluckNumber(style.paddingStart, style.padding, 0);
+    style.paddingEnd = pluckNumber(style.paddingEnd, style.padding, 0);
+    style.paddingTop = pluckNumber(style.paddingTop, style.padding, 0);
+    style.paddingBottom = pluckNumber(style.paddingBottom, style.padding, 0);
+
     domTree.userGivenStyles = {
       gridTemplateColumns: domTree.style.gridTemplateColumns,
       gridTemplateRows: domTree.style.gridTemplateRows,
