@@ -124,7 +124,12 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 
 
-var validSizes = ['auto'];
+
+var repeatFinderRegex = /repeat\(/,
+    validSizes = ['auto'],
+    hasRepeatConfiguration = function hasRepeatConfiguration(style) {
+  return repeatFinderRegex.test(style.gridTemplateRows || '') || repeatFinderRegex.test(style.gridTemplateColumns || '');
+};
 
 var Grid =
 /*#__PURE__*/
@@ -176,6 +181,11 @@ function () {
       var style = _domTree.style,
           config = this._config,
           trackInfo;
+
+      if (hasRepeatConfiguration(style)) {
+        resolveRepeatConfiguration(_domTree);
+      }
+
       trackInfo = this._fetchTrackInformation(style.gridTemplateRows); // trackInfo = this._considerTrackInfoFromChildren(_domTree, trackInfo, 'row');
 
       config.mapping.row = {
@@ -1021,7 +1031,7 @@ var ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'];
 /*!****************************!*\
   !*** ./src/utils/index.js ***!
   \****************************/
-/*! exports provided: cloneObject, attachLayoutInformation, getDisplayProperty */
+/*! exports provided: cloneObject, attachLayoutInformation, getDisplayProperty, pluckNumber */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1029,6 +1039,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cloneObject", function() { return cloneObject; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "attachLayoutInformation", function() { return attachLayoutInformation; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDisplayProperty", function() { return getDisplayProperty; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "pluckNumber", function() { return pluckNumber; });
 /* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./src/utils/constants.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -1072,6 +1083,23 @@ var getDisplayProperty = function getDisplayProperty(domTree) {
   for (i = 0, len = (baseTree.children || []).length; i < len; i++) {
     attachLayoutInformation(baseTree.children[i], calculatedTree.children[i]);
   }
+},
+    pluckNumber = function pluckNumber() {
+  var arg, i, l;
+
+  for (i = 0, l = arguments.length; i < l; i += 1) {
+    arg = arguments[i];
+
+    if (!arg && arg !== false && arg !== 0) {
+      continue;
+    } else if (isNaN(arg = Number(arg))) {
+      continue;
+    }
+
+    return arg;
+  }
+
+  return undefined;
 };
 
 

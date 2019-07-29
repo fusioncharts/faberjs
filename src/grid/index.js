@@ -2,7 +2,9 @@ import { getDisplayProperty } from "../utils";
 import TrackResolver from "./track-sizing";
 import { CENTER, END, STRETCH } from "../utils/constants";
 
-const validSizes = ['auto'];
+const repeatFinderRegex = /repeat\(/,
+  validSizes = ['auto'],
+  hasRepeatConfiguration = style => (repeatFinderRegex.test(style.gridTemplateRows || '') || repeatFinderRegex.test(style.gridTemplateColumns || ''));
 class Grid {
   constructor () {
     this.setup();
@@ -46,6 +48,9 @@ class Grid {
       config = this._config,
       trackInfo;
 
+    if (hasRepeatConfiguration(style)) {
+      resolveRepeatConfiguration(_domTree);
+    }
     trackInfo = this._fetchTrackInformation(style.gridTemplateRows);
     // trackInfo = this._considerTrackInfoFromChildren(_domTree, trackInfo, 'row');
     config.mapping.row = {
@@ -63,6 +68,8 @@ class Grid {
 
     return this;
   }
+
+
 
   _fetchTrackInformation (tracks) {
     let i,
