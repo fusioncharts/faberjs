@@ -113,16 +113,23 @@ class TrackResolver {
 
   _initItems (_items) {
     let items = _items || this.props.items || [],
+      config = this._config,
       sanitizedItems = [],
       nonSpanningItemStartIndex,
       item,
+      validItems = 0,
       i,
       len;
 
     for (i = 0, len = items.length; i < len; i++) {
+      if (isNaN(items[i].start) || isNaN(items[i].end)) {
+        config.autoFlow.push(items[i]);
+        continue;
+      }
       sanitizedItems.push({...items[i]});
-
-      item = sanitizedItems[i];
+      
+      item = sanitizedItems[validItems];
+      validItems++;
 
       item.size = isNaN(item.size) ? this._getParentSize(item) : +item.size;
     }
@@ -136,7 +143,7 @@ class TrackResolver {
       } else return gap1 - gap2;
     });
 
-    for (i = 0, nonSpanningItemStartIndex = len; i < len; i++) {
+    for (i = 0, nonSpanningItemStartIndex = len = sanitizedItems.length; i < len; i++) {
       if (sanitizedItems[i].end - sanitizedItems[i].start > 1) {
         nonSpanningItemStartIndex = i;
         break;
@@ -256,7 +263,8 @@ class TrackResolver {
     this.props = {};
     this._config = {
       frTracks: [],
-      intrinsicTracks: []
+      intrinsicTracks: [],
+      autoFlow: []
     };
 
     return this;
