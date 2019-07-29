@@ -114,6 +114,7 @@ class TrackResolver {
   _initItems (_items) {
     let items = _items || this.props.items || [],
       sanitizedItems = [],
+      nonSpanningItemStartIndex,
       item,
       i,
       len;
@@ -131,9 +132,18 @@ class TrackResolver {
         gap2 = b.end - b.start;
 
       if (gap1 === gap2) {
-        return a.start < b.start;
-      } else return gap1 < gap2;
+        return a.start - b.start;
+      } else return gap1 - gap2;
     });
+
+    for (i = 0, nonSpanningItemStartIndex = len; i < len; i++) {
+      if (sanitizedItems[i].end - sanitizedItems[i].start > 1) {
+        nonSpanningItemStartIndex = i;
+        break;
+      }
+    }
+
+    this._config.nonSpanningItemStartIndex = nonSpanningItemStartIndex;
 
     return (this._config.sanitizedItems = sanitizedItems);
   }
@@ -159,8 +169,8 @@ class TrackResolver {
   }
 
   _placeNonSpanningItems () {
-    let { sanitizedItems, sanitizedTracks } = this._config,
-      nonSpanningItems = sanitizedItems.filter(item => (item.end - item.start) === 1),
+    let { sanitizedItems, sanitizedTracks, nonSpanningItemStartIndex } = this._config,
+      nonSpanningItems = sanitizedItems.slice(0, nonSpanningItemStartIndex),
       track,
       trackIndex;
 
@@ -178,6 +188,47 @@ class TrackResolver {
   }
 
   _placeSpanningItems () {
+    let { sanitizedItems, sanitizedTracks, nonSpanningItemStartIndex, frTracks } = this._config,
+      spanningItems = sanitizedItems.slice(nonSpanningItemStartIndex),
+      trackSizedp = [0],
+      sizeConsumed,
+      sizeLeft,
+      sizePerTrack,
+      availableTracks,
+      hasFrTrack,
+      i,
+      len;
+
+    if (!spanningItems.length) return this;
+
+    for (i = 1, len = sanitizedTracks.length; i < len; i++) {
+      trackSizedp[i] = trackSizedp[i - 1] + (sanitizedTracks[i].baseSize || 0);
+    }
+
+    spanningItems.forEach(item => {
+      sizeConsumed = trackSizedp[item.end - 1] - trackSizedp[item.start - 1];
+      sizeLeft = Math.max(0, item.size - sizeConsumed);
+
+      if (!sizeLeft) return;
+
+      for (i = item.start, hasFrTrack = false, availableTracks = 0; i < item.end; i++) {
+        if (frTracks.indexOf(i) >= 0) {
+          hasFrTrack = true;
+        }
+        if (sanitizedTracks[i].type !== 'fixed') {
+          availableTracks++;
+        }
+      }
+
+      if (!availableTracks || hasFrTrack) return;
+
+      sizePerTrack = sizeLeft / availableTracks;
+      for (i = item.start; i < item.end; i++) {
+        if (sanitizedTracks[i].type !== 'fixed') {
+          sanitizedTracks[i].baseSize += sizePerTrack;
+        }
+      }
+    });
     return this;
   }
 
