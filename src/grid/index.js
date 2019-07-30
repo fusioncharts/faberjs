@@ -2,7 +2,17 @@ import { getDisplayProperty, pluckNumber } from "../utils";
 import TrackResolver from "./track-sizing";
 import { CENTER, END, STRETCH } from "../utils/constants";
 
-const validSizes = ['auto'];
+const validSizes = ['auto'],
+  updateMatrix = (grid, start, end) => {
+    let i,
+      j;
+
+    for (i = start.x; i < end.x; i++) {
+      for (j = start.y; j < end.y; j++) {
+        grid[i][j] = true;
+      }
+    }
+  };
 class Grid {
   constructor () {
     this.setup();
@@ -127,11 +137,24 @@ class Grid {
     let domTree = (_domTree || this.props.domTree),
       items = domTree.children || [],
       mapping = this._config.mapping,
+      gridAutoFlow = domTree.style.gridAutoFlow || 'row',
+      rowNum = Object.keys(mapping.row.lineToNameMap).length,
+      colNum = Object.keys(mapping.col.lineToNameMap).length,
       sanitizedItems = [],
+      autoFlowItems = [],
       itemStyle,
+      gridMatrix = [[]],
+      freeCells = [],
+      cell,
+      item,
+      extraRows,
       i,
+      j,
       len;
 
+    for (i = 1; i <= rowNum; i++) {
+      gridMatrix.push([]);
+    }
     for (i = 0, len = items.length; i < len; i++) {
       itemStyle = items[i].style;
 
@@ -142,6 +165,65 @@ class Grid {
         colStart: mapping.col.nameToLineMap[itemStyle.gridColumnStart],
         colEnd: mapping.col.nameToLineMap[itemStyle.gridColumnEnd]
       });
+      item = sanitizedItems[i];
+      updateMatrix(gridMatrix, {x: item.colStart, y: item.rowStart}, {x: item.colEnd, y: item.rowEnd});
+    }
+
+    autoFlowItems = sanitizedItems.filter(item => (!item.colStart || !item.rowStart));
+
+    /**
+     * @todo: Scope to improve code here.
+     */
+    if (autoFlowItems) {
+      if (gridAutoFlow === 'row') {
+        for (i = 1; i <= rowNum; i++) {
+          for (j = 1; j <= colNum; j++) {
+            if (!gridMatrix[i][j]) {
+              freeCells.push({row: i, col: j});
+            }
+          }
+        }
+
+        while (autoFlowItems.length && freeCells.length) {
+          item = autoFlowItems.shift();
+          cell = freeCells.shift();
+
+          item.rowStart = cell.row;
+          item.colStart = cell.col;
+          item.rowEnd = cell.row + 1;
+          item.colEnd = cell.col + 1;
+        }
+
+        extraRows = Math.ceil(autoFlowItems.length / colNum);
+        if (extraRows) {
+          while (extraRows--) {
+            domTree.style.gridTemplateRows += 'auto ';
+            mapping.row.nameToLineMap[rowNum + 1] = rowNum + 1;
+            mapping.row.nameToLineMap[rowNum + 2] = rowNum + 2;
+            rowNum++;
+            gridMatrix.push([]);
+          }
+          domTree.style.gridTemplateRows = domTree.style.gridTemplateRows.trim();
+  
+          freeCells = [];
+          for (i = 1; i <= rowNum; i++) {
+            for (j = 1; j <= colNum; j++) {
+              if (!gridMatrix[i][j]) {
+                freeCells.push({row: i, col: j});
+              }
+            }
+          }
+          while (autoFlowItems.length) {
+            item = autoFlowItems.shift();
+            cell = freeCells.shift();
+
+            item.rowStart = cell.row;
+            item.colStart = cell.col;
+            item.rowEnd = cell.row + 1;
+            item.colEnd = cell.col + 1;
+          }
+        }
+      }
     }
 
     this._config.sanitizedItems = sanitizedItems;
