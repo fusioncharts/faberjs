@@ -96,6 +96,91 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ({
 
+/***/ "./src/grid/helpers/repeatResolver.js":
+/*!********************************************!*\
+  !*** ./src/grid/helpers/repeatResolver.js ***!
+  \********************************************/
+/*! exports provided: repeatResolver */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "repeatResolver", function() { return repeatResolver; });
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
+
+function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+var repeatDetectionRegex = /repeat\(/g,
+    parseRepeatFunction = function parseRepeatFunction(repeatStr) {
+  return repeatStr.split(/\(|\)/g)[1].split(',').map(function (arg) {
+    return arg && arg.trim();
+  });
+};
+
+function repeatResolver(domTree) {
+  var style = domTree.style,
+      children = domTree.children,
+      rowWidth = 0,
+      numOfRows,
+      itemInARow = 0,
+      itemWidth,
+      repeatStyle,
+      newGridTemplateColumns = '',
+      newGridTemplateRows = '',
+      i,
+      len,
+      gridTemplateColumns = style.gridTemplateColumns,
+      gridTemplateRows = style.gridTemplateRows,
+      width = style.width,
+      height = style.height;
+  width = isNaN(+width) ? 0 : +width;
+
+  if (repeatDetectionRegex.test(gridTemplateColumns)) {
+    var _parseRepeatFunction = parseRepeatFunction(gridTemplateColumns);
+
+    var _parseRepeatFunction2 = _slicedToArray(_parseRepeatFunction, 2);
+
+    repeatStyle = _parseRepeatFunction2[0];
+    itemWidth = _parseRepeatFunction2[1];
+    itemWidth = +itemWidth;
+  }
+
+  if (repeatStyle === 'auto-fit') {
+    rowWidth += itemWidth;
+    newGridTemplateColumns += itemWidth + ' ';
+    itemInARow = 1;
+
+    for (i = 1, len = children.length; i < len; i++) {
+      if (rowWidth + itemWidth > width) {
+        break;
+      }
+
+      rowWidth += itemWidth;
+      newGridTemplateColumns += itemWidth + ' ';
+    }
+
+    itemInARow = i;
+    numOfRows = Math.ceil(len / itemInARow);
+
+    while (numOfRows--) {
+      newGridTemplateRows += 'auto ';
+    }
+  }
+
+  return {
+    gridTemplateColumns: newGridTemplateColumns.trim(),
+    gridTemplateRows: newGridTemplateRows.trim()
+  };
+}
+
+
+
+/***/ }),
+
 /***/ "./src/grid/index.js":
 /*!***************************!*\
   !*** ./src/grid/index.js ***!
@@ -109,6 +194,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils */ "./src/utils/index.js");
 /* harmony import */ var _track_sizing__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./track-sizing */ "./src/grid/track-sizing.js");
 /* harmony import */ var _utils_constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/constants */ "./src/utils/constants.js");
+/* harmony import */ var _helpers_repeatResolver__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./helpers/repeatResolver */ "./src/grid/helpers/repeatResolver.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -120,6 +206,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
 
 
 
@@ -199,16 +286,25 @@ function () {
       var _domTree = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
       var style = _domTree.style,
+          gridTemplateRows = style.gridTemplateRows,
+          gridTemplateColumns = style.gridTemplateColumns,
+          repeatResolvedTracks,
           config = this._config,
           trackInfo;
-      trackInfo = this._fetchTrackInformation(style.gridTemplateRows); // trackInfo = this._considerTrackInfoFromChildren(_domTree, trackInfo, 'row');
 
+      if (/repeat\(/.test(style.gridTemplateColumns)) {
+        repeatResolvedTracks = Object(_helpers_repeatResolver__WEBPACK_IMPORTED_MODULE_3__["repeatResolver"])(_domTree);
+        gridTemplateColumns = repeatResolvedTracks.gridTemplateColumns;
+        gridTemplateRows = repeatResolvedTracks.gridTemplateRows;
+      }
+
+      trackInfo = this._fetchTrackInformation(gridTemplateRows);
       config.mapping.row = {
         nameToLineMap: trackInfo.nameToLineMap,
         lineToNameMap: trackInfo.lineToNameMap
       };
       config.rowTracks = trackInfo.tracks;
-      trackInfo = this._fetchTrackInformation(style.gridTemplateColumns);
+      trackInfo = this._fetchTrackInformation(gridTemplateColumns);
       config.mapping.col = {
         nameToLineMap: trackInfo.nameToLineMap,
         lineToNameMap: trackInfo.lineToNameMap
@@ -218,7 +314,8 @@ function () {
     }
   }, {
     key: "_fetchTrackInformation",
-    value: function _fetchTrackInformation(tracks) {
+    value: function _fetchTrackInformation() {
+      var tracks = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'auto';
       var i,
           len,
           splittedTrackInfo = tracks.split(templateSplitRegex),
@@ -342,8 +439,8 @@ function () {
 
       if (autoFlowItems) {
         if (gridAutoFlow === 'row') {
-          for (i = 1; i <= rowNum; i++) {
-            for (j = 1; j <= colNum; j++) {
+          for (i = 1; i < rowNum; i++) {
+            for (j = 1; j < colNum; j++) {
               if (!gridMatrix[i][j]) {
                 freeCells.push({
                   row: i,
@@ -583,20 +680,31 @@ function () {
   return Grid;
 }();
 
-var replaceWithAbsValue = function replaceWithAbsValue(styleTrack, calculatedTrack) {
+var replaceWithAbsValue = function replaceWithAbsValue() {
+  var styleTrack = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+  var calculatedTrack = arguments.length > 1 ? arguments[1] : undefined;
   var trackSplitAr = styleTrack.split(templateSplitRegex).filter(function (track) {
     return track && !!track.trim();
   }),
       trackWithAbsValue = '',
       counter = 1;
-  trackSplitAr.forEach(function (track) {
-    if (validSizes.indexOf(track) > -1 || /[0-9]fr/.test(track) || minmaxRegex.test(track) || !isNaN(track)) {
-      trackWithAbsValue += calculatedTrack[counter].calculatedStyle.baseSize + ' ';
-      counter++;
-    } else {
-      trackWithAbsValue += track + ' ';
-    }
-  });
+
+  if (trackSplitAr.length && !/repeat\(/.test(styleTrack)) {
+    trackSplitAr.forEach(function (track) {
+      if (validSizes.indexOf(track) > -1 || /[0-9]fr/.test(track) || minmaxRegex.test(track) || !isNaN(track)) {
+        trackWithAbsValue += calculatedTrack[counter].calculatedStyle.baseSize + ' ';
+        counter++;
+      } else {
+        trackWithAbsValue += track + ' ';
+      }
+    });
+  } else {
+    calculatedTrack.forEach(function (track) {
+      if (isNaN(track.calculatedStyle.baseSize)) return;
+      trackWithAbsValue += track.calculatedStyle.baseSize + ' ';
+    });
+  }
+
   return trackWithAbsValue.trim();
 },
     updateDomTreeWithResolvedValues = function updateDomTreeWithResolvedValues(domTree, grid) {

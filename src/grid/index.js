@@ -1,6 +1,7 @@
 import { getDisplayProperty, pluckNumber } from "../utils";
 import TrackResolver from "./track-sizing";
 import { CENTER, END, STRETCH } from "../utils/constants";
+import { repeatResolver } from "./helpers/repeatResolver";
 
 const validSizes = ['auto'],
   minmaxRegex = /minmax/,
@@ -72,18 +73,24 @@ class Grid {
 
   _sanitizeTracks (_domTree = {}) {
     let style = _domTree.style,
+      { gridTemplateRows, gridTemplateColumns } = style,
+      repeatResolvedTracks,
       config = this._config,
       trackInfo;
 
-    trackInfo = this._fetchTrackInformation(style.gridTemplateRows);
-    // trackInfo = this._considerTrackInfoFromChildren(_domTree, trackInfo, 'row');
+    if (/repeat\(/.test(style.gridTemplateColumns)) {
+      repeatResolvedTracks = repeatResolver(_domTree);
+      gridTemplateColumns = repeatResolvedTracks.gridTemplateColumns;
+      gridTemplateRows = repeatResolvedTracks.gridTemplateRows;
+    }
+    trackInfo = this._fetchTrackInformation(gridTemplateRows);
     config.mapping.row = {
       nameToLineMap: trackInfo.nameToLineMap,
       lineToNameMap: trackInfo.lineToNameMap
     };
     config.rowTracks = trackInfo.tracks;
 
-    trackInfo = this._fetchTrackInformation(style.gridTemplateColumns);
+    trackInfo = this._fetchTrackInformation(gridTemplateColumns);
     config.mapping.col = {
       nameToLineMap: trackInfo.nameToLineMap,
       lineToNameMap: trackInfo.lineToNameMap
@@ -93,7 +100,7 @@ class Grid {
     return this;
   }
 
-  _fetchTrackInformation (tracks) {
+  _fetchTrackInformation (tracks = 'auto') {
     let i,
       len,
       splittedTrackInfo = tracks.split(templateSplitRegex),
@@ -195,8 +202,8 @@ class Grid {
      */
     if (autoFlowItems) {
       if (gridAutoFlow === 'row') {
-        for (i = 1; i <= rowNum; i++) {
-          for (j = 1; j <= colNum; j++) {
+        for (i = 1; i < rowNum; i++) {
+          for (j = 1; j < colNum; j++) {
             if (!gridMatrix[i][j]) {
               freeCells.push({row: i, col: j});
             }
@@ -398,19 +405,27 @@ class Grid {
   }
 }
 
-const replaceWithAbsValue = (styleTrack, calculatedTrack) => {
+const replaceWithAbsValue = (styleTrack = '', calculatedTrack) => {
     let trackSplitAr = styleTrack.split(templateSplitRegex).filter(track => track && !!track.trim()),
       trackWithAbsValue = '',
       counter = 1;
 
-    trackSplitAr.forEach(track => {
-      if (validSizes.indexOf(track) > -1 || /[0-9]fr/.test(track) || minmaxRegex.test(track) || !isNaN(track)) {
-        trackWithAbsValue += calculatedTrack[counter].calculatedStyle.baseSize + ' ';
-        counter++;
-      } else {
-        trackWithAbsValue += track + ' ';
-      }
-    });
+    if (trackSplitAr.length && !(/repeat\(/.test(styleTrack))) {
+      trackSplitAr.forEach(track => {
+        if (validSizes.indexOf(track) > -1 || /[0-9]fr/.test(track) || minmaxRegex.test(track) || !isNaN(track)) {
+          trackWithAbsValue += calculatedTrack[counter].calculatedStyle.baseSize + ' ';
+          counter++;
+        } else {
+          trackWithAbsValue += track + ' ';
+        }
+      });
+    } else {
+      calculatedTrack.forEach(track => {
+        if (isNaN(track.calculatedStyle.baseSize)) return;
+        
+        trackWithAbsValue += (track.calculatedStyle.baseSize + ' ');
+      });
+    }
 
     return trackWithAbsValue.trim();
   },
