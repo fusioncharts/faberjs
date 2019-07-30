@@ -3,6 +3,25 @@ import TrackResolver from "./track-sizing";
 import { CENTER, END, STRETCH } from "../utils/constants";
 
 const validSizes = ['auto'],
+  minmaxRegex = /minmax/,
+  // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
+  templateSplitRegex = ' ',
+  getCleanSize = size => {
+    size = size.trim();
+    if (size === 'auto') return size;
+    if (!isNaN(+size)) return +size;
+
+    if (minmaxRegex.test(size)) {
+      let sizeAr = size.split(/\(|\)/g)[1].split(',');
+
+      return [
+        sizeAr[0].trim(),
+        sizeAr[1].trim()
+      ];
+    }
+
+    return size;
+  },
   updateMatrix = (grid, start, end) => {
     let i,
       j;
@@ -77,7 +96,7 @@ class Grid {
   _fetchTrackInformation (tracks) {
     let i,
       len,
-      splittedTrackInfo = tracks.split(' '),
+      splittedTrackInfo = tracks.split(templateSplitRegex),
       nameList,
       sizeList,
       sanitizedTracks = [{}],
@@ -87,7 +106,7 @@ class Grid {
       lineToNameMap = {};
 
     nameList = splittedTrackInfo.filter(track => {
-      if (typeof track === 'string' && track.length) {
+      if (track && typeof track === 'string' && track.length) {
         len = track.length;
         if (track[0] === '[' && track[len - 1] === ']') {
           return true;
@@ -101,11 +120,11 @@ class Grid {
       if (!size) return false;
 
       len = (size + '').toLowerCase().replace(/px|fr/, '');
-      if (validSizes.indexOf(len) >= 0 || !isNaN(len)) {
+      if (validSizes.indexOf(len) >= 0 || minmaxRegex.test(len) || !isNaN(len)) {
         return true;
       }
       return false;
-    });
+    }).map(size => getCleanSize(size));
 
     for (i = 0, len = sizeList.length; i < len; i++) {
       startLineNames = (nameList[i] && nameList[i].replace(/\[|\]/g, '').split(' ').filter(name => name.length).map(name => name.trim())) || [i + 1 + ''];
@@ -380,12 +399,12 @@ class Grid {
 }
 
 const replaceWithAbsValue = (styleTrack, calculatedTrack) => {
-    let trackSplitAr = styleTrack.split(' ').filter(track => !!track.trim()),
+    let trackSplitAr = styleTrack.split(templateSplitRegex).filter(track => track && !!track.trim()),
       trackWithAbsValue = '',
       counter = 1;
 
     trackSplitAr.forEach(track => {
-      if (validSizes.indexOf(track) > -1 || !isNaN(track) || /[0-9]fr/.test(track)) {
+      if (validSizes.indexOf(track) > -1 || /[0-9]fr/.test(track) || minmaxRegex.test(track) || !isNaN(track)) {
         trackWithAbsValue += calculatedTrack[counter].calculatedStyle.baseSize + ' ';
         counter++;
       } else {

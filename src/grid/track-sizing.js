@@ -1,3 +1,5 @@
+import { pluckNumber } from "../utils";
+
 const getMultiplierOfFr = size => +size.replace(/fr/, ''),
   _frSpaceDistributorHelper = (tracks, totalSpaceUsed, containerSize) => {
     let freeSpace,
@@ -25,13 +27,48 @@ const getMultiplierOfFr = size => +size.replace(/fr/, ''),
   },
   _intrinsicSpaceDistributorHelper = (tracks, totalSpaceUsed, containerSize) => {
     let freeSpace,
-      spacePerIntrinsicTrack;
-
+      spacePerIntrinsicTrack,
+      i,
+      len,
+      frozenTrack = 0,
+      minMaxTracks,
+      growthLimit,
+      baseSize;
+      
     if (!tracks.length) {
       return;
     }
-
+    minMaxTracks = tracks.filter(track => track.type === 'minmax' && track.growthLimit !== Infinity);
     freeSpace = containerSize - totalSpaceUsed;
+    
+    minMaxTracks.sort(function (a, b) {
+      let gap1 = a.growthLimit - a.baseSize,
+      gap2 = b.growthLimit - b.baseSize;
+      
+      return gap1 - gap2;
+    });
+    
+    len = minMaxTracks.length;
+    while (frozenTrack < len && freeSpace) {
+      spacePerIntrinsicTrack = freeSpace / ((minMaxTracks.length - frozenTrack) || 1);
+      /**
+       * @todo: remove the frozen tracks.
+       */
+      for (i = 0, len = minMaxTracks.length; i <  len; i++) {
+        growthLimit = minMaxTracks[i].growthLimit;
+        
+        baseSize = Math.min(spacePerIntrinsicTrack + minMaxTracks[i].baseSize, growthLimit);
+        freeSpace -= (baseSize - minMaxTracks[i].baseSize);
+        minMaxTracks[i].baseSize = baseSize;
+
+        if (growthLimit === baseSize && !minMaxTracks[i].frozen) {
+          minMaxTracks[i].frozen = true;
+          frozenTrack++;
+        }
+      }
+    }
+
+    tracks = tracks.filter(track => (track.type === 'minmax' && track.growthLimit === Infinity) || track.type !== 'minmax');
     spacePerIntrinsicTrack = freeSpace / tracks.length;
 
     tracks.forEach(track => track.baseSize += spacePerIntrinsicTrack);
@@ -84,11 +121,29 @@ class TrackResolver {
       size = tracks[i].size;
 
       multiplier = 1;
-      if (!isNaN(+size)) {
+      if (Array.isArray(size)) {
+        baseSize = +size[0] || 0;
+
+        if (size[1].indexOf('fr') > 0 || size[0].indexOf('fr') > 0) {
+          growthLimit = Infinity;
+          config.frTracks.push(i);
+          type = 'minmax';
+        } else if (size[1] === 'auto' || size[0] === 'auto') {
+          growthLimit = Infinity;
+          config.intrinsicTracks.push(i);
+          type = 'minmax';
+        } else if (!isNaN(+size[0]) && !isNaN(+size[1])) {
+          growthLimit = Math.max(+size[0], +size[1]);
+          baseSize = Math.min(+size[0], +size[1]);
+          config.intrinsicTracks.push(i);
+          type = 'minmax'
+        }
+      } else if (!isNaN(+size)) {
         baseSize = growthLimit = +size;
         type = 'fixed';
       } else if (size.indexOf('fr') > 0) {
-        baseSize = growthLimit = 0;
+        baseSize = 0
+        growthLimit = Infinity;
         config.frTracks.push(i);
         type = 'flex';
         multiplier = getMultiplierOfFr(size);

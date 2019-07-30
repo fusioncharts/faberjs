@@ -126,6 +126,21 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 
 var validSizes = ['auto'],
+    minmaxRegex = /minmax/,
+    // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
+templateSplitRegex = ' ',
+    getCleanSize = function getCleanSize(size) {
+  size = size.trim();
+  if (size === 'auto') return size;
+  if (!isNaN(+size)) return +size;
+
+  if (minmaxRegex.test(size)) {
+    var sizeAr = size.split(/\(|\)/g)[1].split(',');
+    return [sizeAr[0].trim(), sizeAr[1].trim()];
+  }
+
+  return size;
+},
     updateMatrix = function updateMatrix(grid, start, end) {
   var i, j;
 
@@ -206,7 +221,7 @@ function () {
     value: function _fetchTrackInformation(tracks) {
       var i,
           len,
-          splittedTrackInfo = tracks.split(' '),
+          splittedTrackInfo = tracks.split(templateSplitRegex),
           nameList,
           sizeList,
           sanitizedTracks = [{}],
@@ -215,7 +230,7 @@ function () {
           nameToLineMap = {},
           lineToNameMap = {};
       nameList = splittedTrackInfo.filter(function (track) {
-        if (typeof track === 'string' && track.length) {
+        if (track && typeof track === 'string' && track.length) {
           len = track.length;
 
           if (track[0] === '[' && track[len - 1] === ']') {
@@ -231,11 +246,13 @@ function () {
         if (!size) return false;
         len = (size + '').toLowerCase().replace(/px|fr/, '');
 
-        if (validSizes.indexOf(len) >= 0 || !isNaN(len)) {
+        if (validSizes.indexOf(len) >= 0 || minmaxRegex.test(len) || !isNaN(len)) {
           return true;
         }
 
         return false;
+      }).map(function (size) {
+        return getCleanSize(size);
       });
 
       for (i = 0, len = sizeList.length; i < len; i++) {
@@ -567,13 +584,13 @@ function () {
 }();
 
 var replaceWithAbsValue = function replaceWithAbsValue(styleTrack, calculatedTrack) {
-  var trackSplitAr = styleTrack.split(' ').filter(function (track) {
-    return !!track.trim();
+  var trackSplitAr = styleTrack.split(templateSplitRegex).filter(function (track) {
+    return track && !!track.trim();
   }),
       trackWithAbsValue = '',
       counter = 1;
   trackSplitAr.forEach(function (track) {
-    if (validSizes.indexOf(track) > -1 || !isNaN(track) || /[0-9]fr/.test(track)) {
+    if (validSizes.indexOf(track) > -1 || /[0-9]fr/.test(track) || minmaxRegex.test(track) || !isNaN(track)) {
       trackWithAbsValue += calculatedTrack[counter].calculatedStyle.baseSize + ' ';
       counter++;
     } else {
@@ -699,6 +716,7 @@ function computeGridLayout(domTree) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils */ "./src/utils/index.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -710,6 +728,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
 
 var getMultiplierOfFr = function getMultiplierOfFr(size) {
   return +size.replace(/fr/, '');
@@ -747,13 +767,52 @@ var getMultiplierOfFr = function getMultiplierOfFr(size) {
   }
 },
     _intrinsicSpaceDistributorHelper = function _intrinsicSpaceDistributorHelper(tracks, totalSpaceUsed, containerSize) {
-  var freeSpace, spacePerIntrinsicTrack;
+  var freeSpace,
+      spacePerIntrinsicTrack,
+      i,
+      len,
+      frozenTrack = 0,
+      minMaxTracks,
+      growthLimit,
+      baseSize;
 
   if (!tracks.length) {
     return;
   }
 
+  minMaxTracks = tracks.filter(function (track) {
+    return track.type === 'minmax' && track.growthLimit !== Infinity;
+  });
   freeSpace = containerSize - totalSpaceUsed;
+  minMaxTracks.sort(function (a, b) {
+    var gap1 = a.growthLimit - a.baseSize,
+        gap2 = b.growthLimit - b.baseSize;
+    return gap1 - gap2;
+  });
+  len = minMaxTracks.length;
+
+  while (frozenTrack < len && freeSpace) {
+    spacePerIntrinsicTrack = freeSpace / (minMaxTracks.length - frozenTrack || 1);
+    /**
+     * @todo: remove the frozen tracks.
+     */
+
+    for (i = 0, len = minMaxTracks.length; i < len; i++) {
+      growthLimit = minMaxTracks[i].growthLimit;
+      baseSize = Math.min(spacePerIntrinsicTrack + minMaxTracks[i].baseSize, growthLimit);
+      freeSpace -= baseSize - minMaxTracks[i].baseSize;
+      minMaxTracks[i].baseSize = baseSize;
+
+      if (growthLimit === baseSize && !minMaxTracks[i].frozen) {
+        minMaxTracks[i].frozen = true;
+        frozenTrack++;
+      }
+    }
+  }
+
+  tracks = tracks.filter(function (track) {
+    return track.type === 'minmax' && track.growthLimit === Infinity || track.type !== 'minmax';
+  });
   spacePerIntrinsicTrack = freeSpace / tracks.length;
   tracks.forEach(function (track) {
     return track.baseSize += spacePerIntrinsicTrack;
@@ -824,11 +883,29 @@ function () {
         size = tracks[i].size;
         multiplier = 1;
 
-        if (!isNaN(+size)) {
+        if (Array.isArray(size)) {
+          baseSize = +size[0] || 0;
+
+          if (size[1].indexOf('fr') > 0 || size[0].indexOf('fr') > 0) {
+            growthLimit = Infinity;
+            config.frTracks.push(i);
+            type = 'minmax';
+          } else if (size[1] === 'auto' || size[0] === 'auto') {
+            growthLimit = Infinity;
+            config.intrinsicTracks.push(i);
+            type = 'minmax';
+          } else if (!isNaN(+size[0]) && !isNaN(+size[1])) {
+            growthLimit = Math.max(+size[0], +size[1]);
+            baseSize = Math.min(+size[0], +size[1]);
+            config.intrinsicTracks.push(i);
+            type = 'minmax';
+          }
+        } else if (!isNaN(+size)) {
           baseSize = growthLimit = +size;
           type = 'fixed';
         } else if (size.indexOf('fr') > 0) {
-          baseSize = growthLimit = 0;
+          baseSize = 0;
+          growthLimit = Infinity;
           config.frTracks.push(i);
           type = 'flex';
           multiplier = getMultiplierOfFr(size);
