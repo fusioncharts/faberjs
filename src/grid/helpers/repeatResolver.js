@@ -17,10 +17,9 @@ function repeatResolver (domTree) {
     { gridTemplateColumns, gridTemplateRows, width, height } = style;
 
   width = isNaN(+width) ? 0 : +width;
-  if (repeatDetectionRegex.test(gridTemplateColumns)) {
-    [repeatStyle, itemWidth] = parseRepeatFunction(gridTemplateColumns);
-    itemWidth = +itemWidth;
-  }
+
+  [repeatStyle, itemWidth] = parseRepeatFunction(gridTemplateColumns);
+  itemWidth = +itemWidth;
 
   if (repeatStyle === 'auto-fit') {
     rowWidth += itemWidth;

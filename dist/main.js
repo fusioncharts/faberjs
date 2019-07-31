@@ -139,15 +139,13 @@ function repeatResolver(domTree) {
       height = style.height;
   width = isNaN(+width) ? 0 : +width;
 
-  if (repeatDetectionRegex.test(gridTemplateColumns)) {
-    var _parseRepeatFunction = parseRepeatFunction(gridTemplateColumns);
+  var _parseRepeatFunction = parseRepeatFunction(gridTemplateColumns);
 
-    var _parseRepeatFunction2 = _slicedToArray(_parseRepeatFunction, 2);
+  var _parseRepeatFunction2 = _slicedToArray(_parseRepeatFunction, 2);
 
-    repeatStyle = _parseRepeatFunction2[0];
-    itemWidth = _parseRepeatFunction2[1];
-    itemWidth = +itemWidth;
-  }
+  repeatStyle = _parseRepeatFunction2[0];
+  itemWidth = _parseRepeatFunction2[1];
+  itemWidth = +itemWidth;
 
   if (repeatStyle === 'auto-fit') {
     rowWidth += itemWidth;
