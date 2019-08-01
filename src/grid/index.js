@@ -5,14 +5,14 @@ import { repeatResolver } from "./helpers/repeatResolver";
 
 const validSizes = ['auto'],
   minmaxRegex = /minmax/,
-  repeatFunctionRegex = /repeat\(/g,
+  // repeatFunctionRegex = /repeat\(/g,
   // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
   templateSplitRegex = ' ',
   getUCFirstString = str => (str.charAt(0).toUpperCase() + str.slice(1)),
   validNestedGrid = tree => {
     let { gridTemplateColumns, gridTemplateRows } = tree.style || {};
 
-    if (repeatFunctionRegex.test(gridTemplateColumns) || repeatFunctionRegex.test(gridTemplateRows)) {
+    if (/repeat\(/g.test(gridTemplateColumns) || /repeat\(/g.test(gridTemplateRows)) {
       return false;
     }
     return true;
@@ -44,8 +44,8 @@ const validSizes = ['auto'],
       trackDir = dimension === 'width' ? 'col' : 'row';
 
     filteredItems = items.map(item => {
-      templateCol = item.style['gridTemplate' + getUCFirstString(trackDir)];
-      if (getDisplayProperty(item) === 'grid' && repeatFunctionRegex.test(templateCol)) {
+      templateCol = item.style['gridTemplate' + getUCFirstString(trackDir === 'col' ? 'columns' : 'rows')];
+      if (getDisplayProperty(item) === 'grid' && /repeat\(/g.test(templateCol)) {
         size = parseRepeatFunction(templateCol)[1];
       } else {
         size = item.style['min' + parsedDim + 'Contribution'] || item.style[dimension] || 'auto';
@@ -337,8 +337,8 @@ class Grid {
 
   _solveUnresolvedChildren (_domTree) {
     let domTree = _domTree || this.props.domTree,
-      childrenWithRepeatConfiguration = (domTree.unResolvedChildren || []).filter(child => repeatFunctionRegex.test(child.style.gridTemplateColumns)
-      || repeatFunctionRegex.test(child.style.gridTemplateRows)),
+      childrenWithRepeatConfiguration = (domTree.unResolvedChildren || []).filter(child => /repeat\(/g.test(child.style.gridTemplateColumns)
+      || /repeat\(/g.test(child.style.gridTemplateRows)),
       { colTracks, mapping } = this._config,
       parentReference = this.getProps('parent'),
       colTrackDp = [0],

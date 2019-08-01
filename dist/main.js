@@ -124,10 +124,13 @@ function repeatResolver(domTree, parentInfo) {
       newGridTemplateRows = '',
       i,
       len,
+      height = 0,
       itemWidth = parentInfo.itemWidth,
-      width = parentInfo.width,
-      height = parentInfo.height;
-  width = isNaN(+width) ? 0 : +width; // [repeatStyle, itemWidth] = parseRepeatFunction(gridTemplateColumns);
+      width = parentInfo.width;
+  width = isNaN(+width) ? 0 : +width;
+  children.forEach(function (child) {
+    return height = Math.max(height, +child.style.height || 0);
+  }); // [repeatStyle, itemWidth] = parseRepeatFunction(gridTemplateColumns);
 
   itemWidth = +itemWidth;
 
@@ -149,7 +152,7 @@ function repeatResolver(domTree, parentInfo) {
     numOfRows = Math.ceil(len / itemInARow);
 
     while (numOfRows--) {
-      newGridTemplateRows += 'auto ';
+      newGridTemplateRows += height + ' ';
     }
   }
 
@@ -196,8 +199,8 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 var validSizes = ['auto'],
     minmaxRegex = /minmax/,
-    repeatFunctionRegex = /repeat\(/g,
-    // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
+    // repeatFunctionRegex = /repeat\(/g,
+// templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
 templateSplitRegex = ' ',
     getUCFirstString = function getUCFirstString(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -207,7 +210,7 @@ templateSplitRegex = ' ',
       gridTemplateColumns = _ref.gridTemplateColumns,
       gridTemplateRows = _ref.gridTemplateRows;
 
-  if (repeatFunctionRegex.test(gridTemplateColumns) || repeatFunctionRegex.test(gridTemplateRows)) {
+  if (/repeat\(/g.test(gridTemplateColumns) || /repeat\(/g.test(gridTemplateRows)) {
     return false;
   }
 
@@ -237,9 +240,9 @@ templateSplitRegex = ' ',
       size,
       trackDir = dimension === 'width' ? 'col' : 'row';
   filteredItems = items.map(function (item) {
-    templateCol = item.style['gridTemplate' + getUCFirstString(trackDir)];
+    templateCol = item.style['gridTemplate' + getUCFirstString(trackDir === 'col' ? 'columns' : 'rows')];
 
-    if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(item) === 'grid' && repeatFunctionRegex.test(templateCol)) {
+    if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(item) === 'grid' && /repeat\(/g.test(templateCol)) {
       size = parseRepeatFunction(templateCol)[1];
     } else {
       size = item.style['min' + parsedDim + 'Contribution'] || item.style[dimension] || 'auto';
@@ -572,7 +575,7 @@ function () {
     value: function _solveUnresolvedChildren(_domTree) {
       var domTree = _domTree || this.props.domTree,
           childrenWithRepeatConfiguration = (domTree.unResolvedChildren || []).filter(function (child) {
-        return repeatFunctionRegex.test(child.style.gridTemplateColumns) || repeatFunctionRegex.test(child.style.gridTemplateRows);
+        return /repeat\(/g.test(child.style.gridTemplateColumns) || /repeat\(/g.test(child.style.gridTemplateRows);
       }),
           _this$_config2 = this._config,
           colTracks = _this$_config2.colTracks,

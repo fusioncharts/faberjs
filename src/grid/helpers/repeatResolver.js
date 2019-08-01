@@ -14,10 +14,12 @@ function repeatResolver (domTree, parentInfo) {
     newGridTemplateRows = '',
     i,
     len,
-    { itemWidth, width, height } = parentInfo;
+    height = 0,
+    { itemWidth, width } = parentInfo;
 
   width = isNaN(+width) ? 0 : +width;
 
+  children.forEach(child => (height = Math.max(height, +child.style.height || 0)))
   // [repeatStyle, itemWidth] = parseRepeatFunction(gridTemplateColumns);
   itemWidth = +itemWidth;
 
@@ -37,7 +39,7 @@ function repeatResolver (domTree, parentInfo) {
     numOfRows = Math.ceil(len / itemInARow);
 
     while (numOfRows--) {
-      newGridTemplateRows += 'auto ';
+      newGridTemplateRows += height + ' ';
     }
   }
 
