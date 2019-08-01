@@ -5,8 +5,21 @@ import { repeatResolver } from "./helpers/repeatResolver";
 
 const validSizes = ['auto'],
   minmaxRegex = /minmax/,
+  repeatFunctionRegex = /repeat\(/g,
   // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
   templateSplitRegex = ' ',
+  getUCFirstString = str => (str.charAt(0).toUpperCase() + str.slice(1)),
+  validNestedGrid = tree => {
+    let { gridTemplateColumns, gridTemplateRows } = tree.style || {};
+
+    if (repeatFunctionRegex.test(gridTemplateColumns) || repeatFunctionRegex.test(gridTemplateRows)) {
+      return false;
+    }
+    return true;
+  },
+  parseRepeatFunction = repeatStr => {
+    return repeatStr.split(/\(|\)/g)[1].split(',').map(arg => arg && arg.trim());
+  },
   getCleanSize = size => {
     size = size.trim();
     if (size === 'auto') return size;
@@ -22,6 +35,29 @@ const validSizes = ['auto'],
     }
 
     return size;
+  },
+  getItemSize = (items, dimension) => {
+    let filteredItems,
+      templateCol,
+      parsedDim = getUCFirstString(dimension),
+      size,
+      trackDir = dimension === 'width' ? 'col' : 'row';
+
+    filteredItems = items.map(item => {
+      templateCol = item.style['gridTemplate' + getUCFirstString(trackDir)];
+      if (getDisplayProperty(item) === 'grid' && repeatFunctionRegex.test(templateCol)) {
+        size = parseRepeatFunction(templateCol)[1];
+      } else {
+        size = item.style['min' + parsedDim + 'Contribution'] || item.style[dimension] || 'auto';
+      }
+
+      return {
+        start: item[trackDir + 'Start'],
+        end: item[trackDir + 'End'],
+        size
+      }
+    });
+    return filteredItems;
   },
   updateMatrix = (grid, start, end) => {
     let i,
@@ -78,11 +114,6 @@ class Grid {
       config = this._config,
       trackInfo;
 
-    if (/repeat\(/.test(style.gridTemplateColumns)) {
-      repeatResolvedTracks = repeatResolver(_domTree);
-      gridTemplateColumns = repeatResolvedTracks.gridTemplateColumns;
-      gridTemplateRows = repeatResolvedTracks.gridTemplateRows;
-    }
     trackInfo = this._fetchTrackInformation(gridTemplateRows);
     config.mapping.row = {
       nameToLineMap: trackInfo.nameToLineMap,
@@ -274,11 +305,7 @@ class Grid {
     }
     sizedTracks = tsa.clear()
       .set('tracks', colTracks)
-      .set('items', sanitizedItems.map(item => ({
-        start: item.colStart,
-        end: item.colEnd,
-        size: (item.style && (item.style.minWidthContribution || item.style.width)) || 'auto'
-      })))
+      .set('items', getItemSize(sanitizedItems, 'width'))
       .set('containerSize', width || 'auto')
       .resolveTracks();
 
@@ -287,16 +314,14 @@ class Grid {
       minWidthContribution += sizedTracks[index].baseSize || 0;
     });
 
+    this._solveUnresolvedChildren();
+
     if (!isNaN(+height)) {
       height -= (paddingTop + paddingBottom);
     }
     sizedTracks = tsa.clear()
       .set('tracks', rowTracks)
-      .set('items', sanitizedItems.map(item => ({
-        start: item.rowStart,
-        end: item.rowEnd,
-        size: (item.style && (item.style.minHeightContribution || item.style.height)) || 'auto'
-      })))
+      .set('items', getItemSize(sanitizedItems, 'height'))
       .set('containerSize', height || 'auto')
       .resolveTracks();
 
@@ -308,6 +333,52 @@ class Grid {
     domTree.style.minHeightContribution = minHeightContribution;
     domTree.style.minWidthContribution = minWidthContribution;
     return this;
+  }
+
+  _solveUnresolvedChildren (_domTree) {
+    let domTree = _domTree || this.props.domTree,
+      childrenWithRepeatConfiguration = (domTree.unResolvedChildren || []).filter(child => repeatFunctionRegex.test(child.style.gridTemplateColumns)
+      || repeatFunctionRegex.test(child.style.gridTemplateRows)),
+      { colTracks, mapping } = this._config,
+      parentReference = this.getProps('parent'),
+      colTrackDp = [0],
+      resolvedTracks,
+      i,
+      len,
+      trackWidth,
+      parentInfo,
+      parsedWidthOfItem,
+      colStart,
+      colEnd;
+
+    if (!childrenWithRepeatConfiguration.length) {
+      return this;
+    }
+
+    for (i = 1, len = colTracks.length; i < len; i++) {
+      colTrackDp[i] = colTrackDp[i - 1] + colTracks[i].calculatedStyle.baseSize;
+    }
+
+    childrenWithRepeatConfiguration.forEach(child => {
+      // if (repeatFunctionRegex.test(child.style.gridTemplateColumns)) {
+      parsedWidthOfItem = parseRepeatFunction(child.style.gridTemplateColumns)[1];
+      colStart = mapping.col.nameToLineMap[child.style.gridColumnStart];
+      colEnd = mapping.col.nameToLineMap[child.style.gridColumnEnd];
+      
+      trackWidth = colTrackDp[colEnd - 1 ] - colTrackDp[colStart - 1];
+      parentInfo = {
+        itemWidth: parsedWidthOfItem,
+        width: trackWidth
+      };
+
+      resolvedTracks = repeatResolver(child, parentInfo);
+
+      child.style.gridTemplateColumns = resolvedTracks.gridTemplateColumns;
+      child.style.gridTemplateRows = resolvedTracks.gridTemplateRows;
+
+      parentReference.gridLayoutEngine(child);
+      // }
+    });
   }
 
   _assignCoordinatesToCells (_domTree) {
@@ -382,25 +453,6 @@ class Grid {
         width,
         height
       };
-    });
-  }
-
-  _updatePositioWRTRoot (_domTree) {
-    let domTree = _domTree || this.props.domTree,
-      children = domTree.children || [];
-
-    domTree.layout.x = domTree.layout.x || 0;
-    domTree.layout.y = domTree.layout.y || 0;
-
-    children.forEach(child => {
-      child.layout.x = (child.layout.x || 0) + domTree.layout.x;
-      child.layout.x2 = (child.layout.x2 || 0) + domTree.layout.x;
-      child.layout.y = (child.layout.y || 0) + domTree.layout.y;
-      child.layout.y2 = (child.layout.y2 || 0) + domTree.layout.y;
-
-      if (getDisplayProperty(child) === 'grid') {
-        this._updatePositioWRTRoot(child);
-      }
     });
   }
 }
@@ -512,20 +564,25 @@ function computeGridLayout (domTree, count = 1) {
     };
   }
 
+  domTree.unResolvedChildren = [];
   for (i = 0, len = (domTree.children && domTree.children.length); i < len; i++) {
     child = domTree.children[i];
     if (getDisplayProperty(child)) {
-      this.compute(child);
+      if (validNestedGrid(child)) {
+        this.compute(child);
+      } else {
+        domTree.unResolvedChildren.push(child);
+      }
     }
   }
 
   grid = new Grid();
   grid.set('domTree', domTree)
+    .set('parent', this)
     .compute();
 
   if (count < 2) {
     this.gridLayoutEngine(updateDomTreeWithResolvedValues(domTree, grid), 2);
-    domTree.root && grid._updatePositioWRTRoot(domTree);
   }
 
   return domTree;

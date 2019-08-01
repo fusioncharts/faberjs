@@ -106,14 +106,6 @@ return /******/ (function(modules) { // webpackBootstrap
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "repeatResolver", function() { return repeatResolver; });
-function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
-
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
-
-function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
-function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 var repeatDetectionRegex = /repeat\(/g,
     parseRepeatFunction = function parseRepeatFunction(repeatStr) {
   return repeatStr.split(/\(|\)/g)[1].split(',').map(function (arg) {
@@ -121,30 +113,22 @@ var repeatDetectionRegex = /repeat\(/g,
   });
 };
 
-function repeatResolver(domTree) {
+function repeatResolver(domTree, parentInfo) {
   var style = domTree.style,
       children = domTree.children,
       rowWidth = 0,
       numOfRows,
       itemInARow = 0,
-      itemWidth,
-      repeatStyle,
+      repeatStyle = 'auto-fit',
       newGridTemplateColumns = '',
       newGridTemplateRows = '',
       i,
       len,
-      gridTemplateColumns = style.gridTemplateColumns,
-      gridTemplateRows = style.gridTemplateRows,
-      width = style.width,
-      height = style.height;
-  width = isNaN(+width) ? 0 : +width;
+      itemWidth = parentInfo.itemWidth,
+      width = parentInfo.width,
+      height = parentInfo.height;
+  width = isNaN(+width) ? 0 : +width; // [repeatStyle, itemWidth] = parseRepeatFunction(gridTemplateColumns);
 
-  var _parseRepeatFunction = parseRepeatFunction(gridTemplateColumns);
-
-  var _parseRepeatFunction2 = _slicedToArray(_parseRepeatFunction, 2);
-
-  repeatStyle = _parseRepeatFunction2[0];
-  itemWidth = _parseRepeatFunction2[1];
   itemWidth = +itemWidth;
 
   if (repeatStyle === 'auto-fit') {
@@ -212,8 +196,28 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 var validSizes = ['auto'],
     minmaxRegex = /minmax/,
+    repeatFunctionRegex = /repeat\(/g,
     // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
 templateSplitRegex = ' ',
+    getUCFirstString = function getUCFirstString(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+},
+    validNestedGrid = function validNestedGrid(tree) {
+  var _ref = tree.style || {},
+      gridTemplateColumns = _ref.gridTemplateColumns,
+      gridTemplateRows = _ref.gridTemplateRows;
+
+  if (repeatFunctionRegex.test(gridTemplateColumns) || repeatFunctionRegex.test(gridTemplateRows)) {
+    return false;
+  }
+
+  return true;
+},
+    parseRepeatFunction = function parseRepeatFunction(repeatStr) {
+  return repeatStr.split(/\(|\)/g)[1].split(',').map(function (arg) {
+    return arg && arg.trim();
+  });
+},
     getCleanSize = function getCleanSize(size) {
   size = size.trim();
   if (size === 'auto') return size;
@@ -225,6 +229,29 @@ templateSplitRegex = ' ',
   }
 
   return size;
+},
+    getItemSize = function getItemSize(items, dimension) {
+  var filteredItems,
+      templateCol,
+      parsedDim = getUCFirstString(dimension),
+      size,
+      trackDir = dimension === 'width' ? 'col' : 'row';
+  filteredItems = items.map(function (item) {
+    templateCol = item.style['gridTemplate' + getUCFirstString(trackDir)];
+
+    if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(item) === 'grid' && repeatFunctionRegex.test(templateCol)) {
+      size = parseRepeatFunction(templateCol)[1];
+    } else {
+      size = item.style['min' + parsedDim + 'Contribution'] || item.style[dimension] || 'auto';
+    }
+
+    return {
+      start: item[trackDir + 'Start'],
+      end: item[trackDir + 'End'],
+      size: size
+    };
+  });
+  return filteredItems;
 },
     updateMatrix = function updateMatrix(grid, start, end) {
   var i, j;
@@ -289,13 +316,6 @@ function () {
           repeatResolvedTracks,
           config = this._config,
           trackInfo;
-
-      if (/repeat\(/.test(style.gridTemplateColumns)) {
-        repeatResolvedTracks = Object(_helpers_repeatResolver__WEBPACK_IMPORTED_MODULE_3__["repeatResolver"])(_domTree);
-        gridTemplateColumns = repeatResolvedTracks.gridTemplateColumns;
-        gridTemplateRows = repeatResolvedTracks.gridTemplateRows;
-      }
-
       trackInfo = this._fetchTrackInformation(gridTemplateRows);
       config.mapping.row = {
         nameToLineMap: trackInfo.nameToLineMap,
@@ -513,42 +533,32 @@ function () {
           minHeightContribution = 0,
           minWidthContribution = 0,
           domTree = this.props.domTree,
-          _ref = domTree.style || {},
-          paddingStart = _ref.paddingStart,
-          paddingEnd = _ref.paddingEnd,
-          paddingTop = _ref.paddingTop,
-          paddingBottom = _ref.paddingBottom,
-          width = _ref.width,
-          height = _ref.height,
+          _ref2 = domTree.style || {},
+          paddingStart = _ref2.paddingStart,
+          paddingEnd = _ref2.paddingEnd,
+          paddingTop = _ref2.paddingTop,
+          paddingBottom = _ref2.paddingBottom,
+          width = _ref2.width,
+          height = _ref2.height,
           tsa = new _track_sizing__WEBPACK_IMPORTED_MODULE_1__["default"]();
 
       if (!isNaN(+width)) {
         width -= paddingStart + paddingEnd;
       }
 
-      sizedTracks = tsa.clear().set('tracks', colTracks).set('items', sanitizedItems.map(function (item) {
-        return {
-          start: item.colStart,
-          end: item.colEnd,
-          size: item.style && (item.style.minWidthContribution || item.style.width) || 'auto'
-        };
-      })).set('containerSize', width || 'auto').resolveTracks();
+      sizedTracks = tsa.clear().set('tracks', colTracks).set('items', getItemSize(sanitizedItems, 'width')).set('containerSize', width || 'auto').resolveTracks();
       colTracks.forEach(function (track, index) {
         track.calculatedStyle = sizedTracks[index];
         minWidthContribution += sizedTracks[index].baseSize || 0;
       });
 
+      this._solveUnresolvedChildren();
+
       if (!isNaN(+height)) {
         height -= paddingTop + paddingBottom;
       }
 
-      sizedTracks = tsa.clear().set('tracks', rowTracks).set('items', sanitizedItems.map(function (item) {
-        return {
-          start: item.rowStart,
-          end: item.rowEnd,
-          size: item.style && (item.style.minHeightContribution || item.style.height) || 'auto'
-        };
-      })).set('containerSize', height || 'auto').resolveTracks();
+      sizedTracks = tsa.clear().set('tracks', rowTracks).set('items', getItemSize(sanitizedItems, 'height')).set('containerSize', height || 'auto').resolveTracks();
       rowTracks.forEach(function (track, index) {
         track.calculatedStyle = sizedTracks[index];
         minHeightContribution += sizedTracks[index].baseSize || 0;
@@ -558,13 +568,58 @@ function () {
       return this;
     }
   }, {
+    key: "_solveUnresolvedChildren",
+    value: function _solveUnresolvedChildren(_domTree) {
+      var domTree = _domTree || this.props.domTree,
+          childrenWithRepeatConfiguration = (domTree.unResolvedChildren || []).filter(function (child) {
+        return repeatFunctionRegex.test(child.style.gridTemplateColumns) || repeatFunctionRegex.test(child.style.gridTemplateRows);
+      }),
+          _this$_config2 = this._config,
+          colTracks = _this$_config2.colTracks,
+          mapping = _this$_config2.mapping,
+          parentReference = this.getProps('parent'),
+          colTrackDp = [0],
+          resolvedTracks,
+          i,
+          len,
+          trackWidth,
+          parentInfo,
+          parsedWidthOfItem,
+          colStart,
+          colEnd;
+
+      if (!childrenWithRepeatConfiguration.length) {
+        return this;
+      }
+
+      for (i = 1, len = colTracks.length; i < len; i++) {
+        colTrackDp[i] = colTrackDp[i - 1] + colTracks[i].calculatedStyle.baseSize;
+      }
+
+      childrenWithRepeatConfiguration.forEach(function (child) {
+        // if (repeatFunctionRegex.test(child.style.gridTemplateColumns)) {
+        parsedWidthOfItem = parseRepeatFunction(child.style.gridTemplateColumns)[1];
+        colStart = mapping.col.nameToLineMap[child.style.gridColumnStart];
+        colEnd = mapping.col.nameToLineMap[child.style.gridColumnEnd];
+        trackWidth = colTrackDp[colEnd - 1] - colTrackDp[colStart - 1];
+        parentInfo = {
+          itemWidth: parsedWidthOfItem,
+          width: trackWidth
+        };
+        resolvedTracks = Object(_helpers_repeatResolver__WEBPACK_IMPORTED_MODULE_3__["repeatResolver"])(child, parentInfo);
+        child.style.gridTemplateColumns = resolvedTracks.gridTemplateColumns;
+        child.style.gridTemplateRows = resolvedTracks.gridTemplateRows;
+        parentReference.gridLayoutEngine(child); // }
+      });
+    }
+  }, {
     key: "_assignCoordinatesToCells",
     value: function _assignCoordinatesToCells(_domTree) {
       var domTree = _domTree || this.props.domTree,
-          _this$_config2 = this._config,
-          sanitizedItems = _this$_config2.sanitizedItems,
-          rowTracks = _this$_config2.rowTracks,
-          colTracks = _this$_config2.colTracks,
+          _this$_config3 = this._config,
+          sanitizedItems = _this$_config3.sanitizedItems,
+          rowTracks = _this$_config3.rowTracks,
+          colTracks = _this$_config3.colTracks,
           item,
           len,
           i,
@@ -651,26 +706,6 @@ function () {
           width: width,
           height: height
         };
-      });
-    }
-  }, {
-    key: "_updatePositioWRTRoot",
-    value: function _updatePositioWRTRoot(_domTree) {
-      var _this = this;
-
-      var domTree = _domTree || this.props.domTree,
-          children = domTree.children || [];
-      domTree.layout.x = domTree.layout.x || 0;
-      domTree.layout.y = domTree.layout.y || 0;
-      children.forEach(function (child) {
-        child.layout.x = (child.layout.x || 0) + domTree.layout.x;
-        child.layout.x2 = (child.layout.x2 || 0) + domTree.layout.x;
-        child.layout.y = (child.layout.y || 0) + domTree.layout.y;
-        child.layout.y2 = (child.layout.y2 || 0) + domTree.layout.y;
-
-        if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(child) === 'grid') {
-          _this._updatePositioWRTRoot(child);
-        }
       });
     }
   }]);
@@ -790,20 +825,25 @@ function computeGridLayout(domTree) {
     };
   }
 
+  domTree.unResolvedChildren = [];
+
   for (i = 0, len = domTree.children && domTree.children.length; i < len; i++) {
     child = domTree.children[i];
 
     if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(child)) {
-      this.compute(child);
+      if (validNestedGrid(child)) {
+        this.compute(child);
+      } else {
+        domTree.unResolvedChildren.push(child);
+      }
     }
   }
 
   grid = new Grid();
-  grid.set('domTree', domTree).compute();
+  grid.set('domTree', domTree).set('parent', this).compute();
 
   if (count < 2) {
     this.gridLayoutEngine(updateDomTreeWithResolvedValues(domTree, grid), 2);
-    domTree.root && grid._updatePositioWRTRoot(domTree);
   }
 
   return domTree;
