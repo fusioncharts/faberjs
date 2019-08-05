@@ -1,5 +1,5 @@
 import { computeLayout } from "../src/mason";
-import { basicTwoCrossTwoNodeWithFourChildren } from "./utils";
+import { basicTwoCrossTwoNodeWithFourChildren, basicTestgridTemplateRowsColumnsNotProvided, basicTestgridTemplateRowsColumnsNotProvided2 } from "./utils";
 
 describe('Grid Sizing test', () => {
   it('Grid should return layout with x,x2,y,y2,width and height', () => {
@@ -54,5 +54,57 @@ describe('Grid Sizing test', () => {
       expect(c.layout.y2).toBe(expectedGrid[index].y2);
     });
 
+  });
+
+  it('A 2X2 grid with 4 children without gridTemplateColumns gridTemplateRows engine should work', () => {
+    const result = computeLayout(basicTestgridTemplateRowsColumnsNotProvided2);
+
+    result.children.forEach(c => {
+      expect(c.hasOwnProperty('layout')).toBe(true);
+      expect(c.layout.hasOwnProperty('x')).toBe(true);
+      expect(c.layout.hasOwnProperty('x2')).toBe(true);
+      expect(c.layout.hasOwnProperty('y')).toBe(true);
+      expect(c.layout.hasOwnProperty('y2')).toBe(true);
+      expect(c.layout.hasOwnProperty('width')).toBe(true);
+      expect(c.layout.hasOwnProperty('height')).toBe(true);
+    });
+  });
+
+  it('A 2X2 grid with 4 children 200 200 200 200 without gridTemplateColumns gridTemplateRows', () => {
+    const result = computeLayout(basicTestgridTemplateRowsColumnsNotProvided),
+    expectedGrid = [{
+      x: 0,
+      x2: 200,
+      y: 0,
+      y2: 200
+    },
+    {
+      x: 200,
+      x2: 400,
+      y: 0,
+      y2: 200
+    },
+    {
+      x: 0,
+      x2: 200,
+      y: 200,
+      y2: 400
+    },
+    {
+      x: 200,
+      x2: 400,
+      y: 200,
+      y2: 400
+    }];
+
+    result.children.forEach((c, index) => {
+      expect(c.layout.height).toBe(200);
+      expect(c.layout.width).toBe(200);
+
+      expect(c.layout.x).toBe(expectedGrid[index].x);
+      expect(c.layout.x2).toBe(expectedGrid[index].x2);
+      expect(c.layout.y).toBe(expectedGrid[index].y);
+      expect(c.layout.y2).toBe(expectedGrid[index].y2);
+    });
   });
 });

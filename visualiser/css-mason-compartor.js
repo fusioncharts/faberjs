@@ -6,8 +6,8 @@ const chart = {
     justifyItems: 'center',
     //gridTemplateRows: '[one] 100 [two] 100 [three]',
     //gridTemplateColumns: '[one] 100 [two] 100 [three]',
-    templateRowsHTML: ['auto'],
-    templateColumnsHTML: ['auto']
+    templateRowsHTML: ['none'],
+    templateColumnsHTML: ['none']
   },
   children: [
     {
