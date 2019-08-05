@@ -1,15 +1,69 @@
-
 const chart = {
+  style: {
+    display: 'grid',
+    width: 400,
+    height: 400,
+    justifyItems: 'center',
+    //gridTemplateRows: '[one] 100 [two] 100 [three]',
+    //gridTemplateColumns: '[one] 100 [two] 100 [three]',
+    templateRowsHTML: ['auto'],
+    templateColumnsHTML: ['auto']
+  },
+  children: [
+    {
+      style: {
+        width: 100,
+        height: '100',
+        gridRowStart: '1',
+        gridRowEnd: '2',
+        gridColumnStart: '1',
+        gridColumnEnd: '2'
+      }
+    },
+    {
+      style: {
+        width: 100,
+        height: '100',
+        gridRowStart: '1',
+        gridRowEnd: '2',
+        gridColumnStart: '2',
+        gridColumnEnd: '3'
+      }
+    },
+    {
+      style: {
+        width: 100,
+        height: '100',
+        gridRowStart: '2',
+        gridRowEnd: '3',
+        gridColumnStart: '1',
+        gridColumnEnd: '2'
+      }
+    },
+    {
+      style: {
+        width: 100,
+        height: '100',
+        gridRowStart: '2',
+        gridRowEnd: '3',
+        gridColumnStart: '2',
+        gridColumnEnd: '3'
+      }
+    }
+  ]
+};
+
+const chart2 = {
   style: {
     display: 'grid',
     width: 700,
     height: 400,
     justifyItems: 'center',
     // gridTemplateRows: ['50', '1fr', '100'],
-    gridTemplateRows: '[one] auto [two] auto [three]',
+    //gridTemplateRows: '[one] auto [two] auto [three]',
     templateRowsHTML: ['50px', '1fr', '100px'],
     // gridTemplateColumns: ['50', '1fr', '100'],
-    gridTemplateColumns: '[one] auto [two] auto [three] auto [four]',
+    //gridTemplateColumns: '[one] auto [two] auto [three] auto [four]',
     templateColumnsHTML: ['50px', '1fr', '100px']
   },
   children: [
@@ -157,8 +211,8 @@ function getHTMLCSSInlined () {
     childEl.style.width = child.style.width;
     childEl.style.height = child.style.height;
     childEl.style.position = 'absolute';
-    childEl.style.left = child.startX;
-    childEl.style.top = child.startY;
+    childEl.style.left = child.layout.x;
+    childEl.style.top = child.layout.y;
     masonContainerEl.appendChild(childEl);
   });
 
@@ -167,6 +221,10 @@ function getHTMLCSSInlined () {
     childEl.classList.add('bordered');
     childEl.style.width = child.style.width;
     childEl.style.height = child.style.height;
+    childEl.style.gridColumnStart = child.style.gridColumnStart;
+    childEl.style.gridColumnEnd = child.style.gridColumnEnd;
+    childEl.style.gridRowStart = child.style.gridRowStart;
+    childEl.style.gridRowEnd = child.style.gridRowEnd;
     htmlContainerEl.appendChild(childEl);
   });
 }
