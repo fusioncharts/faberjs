@@ -3,7 +3,7 @@ import TrackResolver from "./track-sizing";
 import { CENTER, END, STRETCH } from "../utils/constants";
 import { repeatResolver } from "./helpers/repeatResolver";
 
-const validSizes = ['auto'],
+const validSizes = ['auto', 'none'],
   minmaxRegex = /minmax/,
   // repeatFunctionRegex = /repeat\(/g,
   // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
@@ -146,7 +146,7 @@ class Grid {
     return this;
   }
 
-  _fetchTrackInformation (tracks = 'auto') {
+  _fetchTrackInformation (tracks = 'none') {
     let i,
       len,
       splittedTrackInfo = tracks.split(templateSplitRegex),
@@ -180,7 +180,7 @@ class Grid {
     }).map(size => getCleanSize(size));
 
     len = sizeList.length;
-    if(tracks === "auto"){
+    if(tracks === "none"){
       len = this.getProps("maxTracks");
       console.log(len);
       sizeList = 'auto,'.repeat(len).split(",");
