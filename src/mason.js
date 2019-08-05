@@ -20,6 +20,11 @@ class LayoutEngine {
   }
 }
 
+/**
+ * Public API used externally to provide input to layout engine
+ * 
+ * @param {Object} domTree Object containing the layout node information
+ */
 const computeLayout = (domTree) => {
   const mason = new LayoutEngine();
   let clonedDomTree = cloneObject(domTree),
