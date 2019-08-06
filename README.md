@@ -1,7 +1,9 @@
 # MASON
-Mason is an open source CSS Grid implementation. Unline HTML element which can leverage power of CSS for Grid layouting, objects like SVG or custom objects cannot do that. Hence this library tries to solve that problem.
+Mason is an open source CSS Grid implementation. Unlike HTML element which can leverage power of CSS for Grid layouting, objects like SVG or custom objects cannot do that. Hence this library tries to solve that problem.
+For example we have have an object storing drawing information like dimensions and styles and then for laying itself in a parent container, Mason can be used.
+
 ## Introduction to CSS Grid
-CSS Grid Layout is the most powerful layout system available in CSS. It is a 2-dimensional system, meaning it can handle both columns and rows, unlike flexbox which is largely a 1-dimensional system. You work with Grid Layout by applying CSS rules both to a parent element (which becomes the Grid Container) and to that element's children (which become Grid Items).
+CSS Grid Layout is one of the most powerful layout system available in CSS. It is a 2-dimensional system, meaning it can handle both columns and rows, unlike flexbox which is largely a 1-dimensional system. You work with Grid Layout by applying CSS rules both to a parent element (which becomes the Grid Container) and to that element's children (which become Grid Items).
 
 For more details about CSS grids, refer to this awesome guide:
 https://css-tricks.com/snippets/css/complete-guide-grid/
