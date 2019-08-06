@@ -393,10 +393,18 @@ class Grid {
     return this;
   }
 
-  _expandTracksIfRequired () {
-    return this;
-  }
-
+  /**
+   * Track solving algorithm is used to calculate the size of each track. First the column tracks are resolved, then the
+   * row tracks. For track solving algorithm to run, it is important to resolve all the nested grids. Solving the nested
+   * grids allows to consider their min-content contribution while solving tracks of parent grid.
+   * 
+   * An exception arises if a nested grid has repeat in either of the gridTemplateColumns or gridTemplateRows property.
+   * In that case, the nested grid is solved once the column tracks of the parent grid is solved.
+   *
+   * @returns {Grid}
+   *          Reference of the class instance.
+   * @memberof Grid
+   */
   _inflateTracks () {
     let { sanitizedItems, colTracks, rowTracks } = this._config,
       sizedTracks,
@@ -441,6 +449,16 @@ class Grid {
     return this;
   }
 
+  /**
+   * The grid items which are also grid containers(nested grids) and has repeat() configuration in either of
+   * gridTenplateColumns or gridTemplateRows attribute are solved after the column tracks of the parents are solved.
+   *
+   * @param   {Object} _domTree
+   *          Full node tree consisting of grid container and grid items.
+   * @returns {Grid}
+   *          Reference of the class instance.
+   * @memberof Grid
+   */
   _solveUnresolvedChildren (_domTree) {
     let domTree = _domTree || this.props.domTree,
       childrenWithRepeatConfiguration = (domTree.unResolvedChildren || []).filter(child => /repeat\(/g.test(child.style.gridTemplateColumns)
@@ -485,8 +503,17 @@ class Grid {
       parentReference.gridLayoutEngine(child);
       // }
     });
+
+    return this;
   }
 
+  /**
+   * After the grid is resolved, the items and the container should receive their dimensions(width, height) and positions(x, y).
+   * This values are calculated after considering the justifyItem and alignItem attributes.
+   *
+   * @param {Object} _domTree
+   * @memberof Grid
+   */
   _assignCoordinatesToCells (_domTree) {
     let domTree = _domTree || this.props.domTree,
       { sanitizedItems, rowTracks, colTracks } = this._config,
@@ -560,6 +587,8 @@ class Grid {
         height
       };
     });
+
+    return this;
   }
 }
 
