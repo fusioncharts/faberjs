@@ -1,5 +1,5 @@
 # MASON
-
+Mason is an open source CSS Grid implementation. Unline HTML element which can leverage power of CSS for Grid layouting, objects like SVG or custom objects cannot do that. Hence this library tries to solve that problem.
 ## Introduction to CSS Grid
 CSS Grid Layout is the most powerful layout system available in CSS. It is a 2-dimensional system, meaning it can handle both columns and rows, unlike flexbox which is largely a 1-dimensional system. You work with Grid Layout by applying CSS rules both to a parent element (which becomes the Grid Container) and to that element's children (which become Grid Items).
 
@@ -17,7 +17,7 @@ npm install
 npm start 
 ```
 
-### Basic usage
+
 **Define a Grid with template and items**
 ```
 const parent = {
@@ -171,3 +171,10 @@ const layout = computeLayout({
 gridTemplateColumns: '[col-1] 100 [col-2] 100'
 gridTemplateRows: '[row-1] 100 [row-2] 100'
 ```
+
+### Alignments
+_Standard justification and alignment properties are supported, like justifyItems, alignItems, justifySelf, alignSelf_
+
+
+## Contribution Guide
+Refer the contributing.md for more details
