@@ -81,10 +81,21 @@ const validSizes = ['auto', 'none'],
     };
   };
 class Grid {
+  /**
+   * Creates an instance of Grid. Initializes the props and _config object.
+   * @memberof Grid
+   */
   constructor () {
     this.setup();
   }
 
+  /**
+   * Initializes _config, props objects. Also initializes and stores a new instance of TrackResolver.
+   *
+   * @returns {Grid}
+   *          Reference of the class instance.
+   * @memberof Grid
+   */
   setup () {
     this._tsa = new TrackResolver();
     this.props = {};
@@ -95,20 +106,61 @@ class Grid {
     return this;
   }
 
+  /**
+   * Setter method to set props.
+   *
+   * @param   {String} key
+   *          key represents the name by which the value is to be stored in props object.
+   * @param   {any} value
+   *          value is the information(can be anything) that has to be stored against the key.
+   * @returns {Grid}
+   *          Reference of the class instance.
+   * @memberof Grid
+   */
   set (key, value) {
     this.props[key] = value;
 
     return this;
   }
 
+  /**
+   * Getter method to fetch props.
+   *
+   * @param   {String} key
+   *          key of the value which has to be fetched.
+   * @returns {Grid}
+   *          Reference of the class instance.
+   * @memberof Grid
+   */
   getProps (key) {
     return this.props[key];
   }
 
+  /**
+   * Getter method to fetch config.
+   *
+   * @param   {String} key
+   *          key of the value which has to be fetched.
+   * @returns {Grid}
+   *          Reference of the class instance.
+   * @memberof Grid
+   */
   getConfig (key) {
     return this._config[key];
   }
 
+  /**
+   * compute method is called to calculate the layout. This is the driver API.
+   * 1. Tracks(rows and columns) are sanitized. Sanitization of tracks consists of going through the child nodes to get an overall estimate
+   *    regarding the number of tracks that are required.
+   * 2. Items(child nodes) are sanitized. Any item without any proper gridStart and gridEnd values gets sanitized here.
+   * 3. Track solving algrithm is run for both columns and rows to calculate the size each track will get.
+   * 4. Once tracks are resolved and all tracks have their size, all the grid items are assigned their width, height, x and y(when applicable)
+   *
+   * @param {Object} _domTree
+   *        Full node tree consisting of grid containers and grid items.
+   * @memberof Grid
+   */
   compute (_domTree) {
     let domTree = _domTree || this.props.domTree;
 
