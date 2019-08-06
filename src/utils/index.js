@@ -1,5 +1,7 @@
 import { ATOMIC_DATA_TYPE } from "./constants";
 
+let UNDEF;
+
 const getDisplayProperty = (domTree) => {
     return domTree.style && domTree.style.display;
   },
