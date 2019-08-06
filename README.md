@@ -17,7 +17,6 @@ npm install
 npm start 
 ```
 
-
 **Define a Grid with template and items**
 ```
 const parent = {
@@ -177,4 +176,4 @@ _Standard justification and alignment properties are supported, like justifyItem
 
 
 ## Contribution Guide
-Refer the contributing.md for more details
+Refer the <https://www.github.com/fusioncharts/mason/blob/develop/contributing.md> contributing.md for more details
