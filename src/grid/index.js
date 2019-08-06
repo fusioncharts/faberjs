@@ -55,7 +55,7 @@ const validSizes = ['auto', 'none'],
         start: item[trackDir + 'Start'],
         end: item[trackDir + 'End'],
         size
-      }
+      };
     });
     return filteredItems;
   },
@@ -71,7 +71,7 @@ const validSizes = ['auto', 'none'],
   },
   getMaxRowColumn = (items) =>{
     let maxRow = 1, maxColumn = 1;
-    items.forEach((item, itemIndex) => {
+    items.forEach((item) => {
       maxColumn = Math.max(isNaN(item.style.gridColumnStart) ? 0 : item.style.gridColumnStart, maxColumn, isNaN(item.style.gridColumnEnd * 1 - 1) ? 0 : item.style.gridColumnEnd*1 - 1);
       maxRow = Math.max(isNaN(item.style.gridRowStart) ? 0 : item.style.gridRowStart, maxRow, isNaN(item.style.gridRowEnd * 1 - 1) ? 0 : item.style.gridRowEnd*1 - 1);
     });
@@ -121,7 +121,6 @@ class Grid {
   _sanitizeTracks (_domTree = {}) {
     let style = _domTree.style,
       { gridTemplateRows, gridTemplateColumns } = style,
-      repeatResolvedTracks,
       config = this._config,
       trackInfo;
 
@@ -407,7 +406,7 @@ class Grid {
       item,
       len,
       i,
-      { justifyItems, alignItems, paddingStart, paddingEnd, paddingTop, paddingBottom } = domTree.style,
+      { justifyItems, alignItems, paddingStart, paddingTop } = domTree.style,
       trackWidth,
       trackHeight,
       width,
