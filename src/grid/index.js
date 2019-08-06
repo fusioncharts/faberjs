@@ -71,7 +71,7 @@ const validSizes = ['auto', 'none'],
   },
   getMaxRowColumn = (items) =>{
     let maxRow = 1, maxColumn = 1;
-    items.forEach((item, itemIndex) => {
+    items.forEach((item) => {
       maxColumn = Math.max(isNaN(item.style.gridColumnStart) ? 0 : item.style.gridColumnStart, maxColumn, isNaN(item.style.gridColumnEnd * 1 - 1) ? 0 : item.style.gridColumnEnd*1 - 1);
       maxRow = Math.max(isNaN(item.style.gridRowStart) ? 0 : item.style.gridRowStart, maxRow, isNaN(item.style.gridRowEnd * 1 - 1) ? 0 : item.style.gridRowEnd*1 - 1);
     });
