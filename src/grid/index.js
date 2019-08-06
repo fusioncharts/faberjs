@@ -70,7 +70,7 @@ const validSizes = ['auto', 'none'],
     }
   },
   getMaxRowColumn = (items) =>{
-    let maxRow = 0, maxColumn = 0;
+    let maxRow = 1, maxColumn = 1;
     items.forEach((item, itemIndex) => {
       maxColumn = Math.max(isNaN(item.style.gridColumnStart) ? 0 : item.style.gridColumnStart, maxColumn, isNaN(item.style.gridColumnEnd * 1 - 1) ? 0 : item.style.gridColumnEnd*1 - 1);
       maxRow = Math.max(isNaN(item.style.gridRowStart) ? 0 : item.style.gridRowStart, maxRow, isNaN(item.style.gridRowEnd * 1 - 1) ? 0 : item.style.gridRowEnd*1 - 1);
@@ -182,8 +182,6 @@ class Grid {
     len = sizeList.length;
     if(tracks === "none"){
       len = this.getProps("maxTracks");
-      sizeList = 'auto,'.repeat(len).split(",");
-      sizeList.pop();
     }
 
     for (i = 0; i < len; i++) {
@@ -193,7 +191,7 @@ class Grid {
       sanitizedTracks.push({
         start: i + 1,
         end: i + 2,
-        size: sizeList[i]
+        size: sizeList[i] || 'auto'
       });
 
       // A line can have multiple names but a name can only be assigned to a single line
@@ -229,9 +227,7 @@ class Grid {
       extraRows,
       i,
       j,
-      len,
-      maxColumns,
-      maxRows;
+      len;
 
     for (i = 1; i <= rowNum; i++) {
       gridMatrix.push([]);
