@@ -3,7 +3,7 @@ import TrackResolver from "./track-sizing";
 import { CENTER, END, STRETCH } from "../utils/constants";
 import { repeatResolver } from "./helpers/repeatResolver";
 
-const validSizes = ['auto'],
+const validSizes = ['auto', 'none'],
   minmaxRegex = /minmax/,
   // repeatFunctionRegex = /repeat\(/g,
   // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
@@ -68,6 +68,17 @@ const validSizes = ['auto'],
         grid[i][j] = true;
       }
     }
+  },
+  getMaxRowColumn = (items) =>{
+    let maxRow = 1, maxColumn = 1;
+    items.forEach((item, itemIndex) => {
+      maxColumn = Math.max(isNaN(item.style.gridColumnStart) ? 0 : item.style.gridColumnStart, maxColumn, isNaN(item.style.gridColumnEnd * 1 - 1) ? 0 : item.style.gridColumnEnd*1 - 1);
+      maxRow = Math.max(isNaN(item.style.gridRowStart) ? 0 : item.style.gridRowStart, maxRow, isNaN(item.style.gridRowEnd * 1 - 1) ? 0 : item.style.gridRowEnd*1 - 1);
+    });
+    return {
+      maxRow,
+      maxColumn
+    };
   };
 class Grid {
   constructor () {
@@ -113,6 +124,9 @@ class Grid {
       config = this._config,
       trackInfo;
 
+    let {maxColumn, maxRow} = getMaxRowColumn(_domTree.children);
+    this.set("maxTracks", maxRow);
+
     trackInfo = this._fetchTrackInformation(gridTemplateRows);
     config.mapping.row = {
       nameToLineMap: trackInfo.nameToLineMap,
@@ -120,6 +134,7 @@ class Grid {
     };
     config.rowTracks = trackInfo.tracks;
 
+    this.set("maxTracks", maxColumn);
     trackInfo = this._fetchTrackInformation(gridTemplateColumns);
     config.mapping.col = {
       nameToLineMap: trackInfo.nameToLineMap,
@@ -130,7 +145,7 @@ class Grid {
     return this;
   }
 
-  _fetchTrackInformation (tracks = 'auto') {
+  _fetchTrackInformation (tracks = 'none') {
     let i,
       len,
       splittedTrackInfo = tracks.split(templateSplitRegex),
@@ -163,14 +178,19 @@ class Grid {
       return false;
     }).map(size => getCleanSize(size));
 
-    for (i = 0, len = sizeList.length; i < len; i++) {
+    len = sizeList.length;
+    if(tracks === "none"){
+      len = this.getProps("maxTracks");
+    }
+
+    for (i = 0; i < len; i++) {
       startLineNames = (nameList[i] && nameList[i].replace(/\[|\]/g, '').split(' ').filter(name => name.length).map(name => name.trim())) || [i + 1 + ''];
       endLineNames = (nameList[i + 1] && nameList[i + 1].replace(/\[|\]/g, '').split(' ').filter(name => name.length).map(name => name.trim())) || [i + 2 + ''];
 
       sanitizedTracks.push({
         start: i + 1,
         end: i + 2,
-        size: sizeList[i],
+        size: sizeList[i] || 'auto'
       });
 
       // A line can have multiple names but a name can only be assigned to a single line
@@ -260,7 +280,7 @@ class Grid {
             gridMatrix.push([]);
           }
           domTree.style.gridTemplateRows = domTree.style.gridTemplateRows.trim();
-  
+
           freeCells = [];
           for (i = 1; i <= rowNum; i++) {
             for (j = 1; j <= colNum; j++) {
@@ -363,7 +383,7 @@ class Grid {
       parsedWidthOfItem = parseRepeatFunction(child.style.gridTemplateColumns)[1];
       colStart = mapping.col.nameToLineMap[child.style.gridColumnStart];
       colEnd = mapping.col.nameToLineMap[child.style.gridColumnEnd];
-      
+
       trackWidth = colTrackDp[colEnd - 1 ] - colTrackDp[colStart - 1];
       parentInfo = {
         itemWidth: parsedWidthOfItem,
@@ -413,7 +433,7 @@ class Grid {
       item = sanitizedItems[index];
       trackWidth = colTrackdp[item.colEnd - 1] - colTrackdp[item.colStart - 1];
       trackHeight = rowTrackdp[item.rowEnd - 1] - rowTrackdp[item.rowStart - 1];
-      
+
       width = isNaN(+child.style.width) ? trackWidth : +child.style.width;
       height = isNaN(+child.style.height) ? trackHeight : +child.style.height;
 
@@ -473,7 +493,7 @@ const replaceWithAbsValue = (styleTrack = '', calculatedTrack) => {
     } else {
       calculatedTrack.forEach(track => {
         if (isNaN(track.calculatedStyle.baseSize)) return;
-        
+
         trackWithAbsValue += (track.calculatedStyle.baseSize + ' ');
       });
     }
@@ -523,7 +543,7 @@ const replaceWithAbsValue = (styleTrack = '', calculatedTrack) => {
 
           rowStart = mapping.row.nameToLineMap[rowStart];
           rowEnd = mapping.row.nameToLineMap[rowEnd];
-          
+
           for (j = rowStart, rowTrackSum = 0; j < rowEnd; j++) {
             rowTrackSum += rowTracks[j].calculatedStyle.baseSize;
           }
