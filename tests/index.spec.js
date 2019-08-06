@@ -1,5 +1,5 @@
 import { computeLayout } from "../src/mason";
-import { basicTwoCrossTwoNodeWithFourChildren, basicTestgridTemplateRowsColumnsNotProvided, basicTestgridTemplateRowsColumnsNotProvided2 } from "./utils";
+import { basicTwoCrossTwoNodeWithFourChildren, testUndeclearedTracklines, testTwoCrossTwoNodesFillParent } from "./utils";
 
 describe('Grid Sizing test', () => {
   it('Grid should return layout with x,x2,y,y2,width and height', () => {
@@ -57,7 +57,7 @@ describe('Grid Sizing test', () => {
   });
 
   it('A 2X2 grid with 4 children without gridTemplateColumns gridTemplateRows engine should work', () => {
-    const result = computeLayout(basicTestgridTemplateRowsColumnsNotProvided2);
+    const result = computeLayout(testUndeclearedTracklines);
 
     result.children.forEach(c => {
       expect(c.hasOwnProperty('layout')).toBe(true);
@@ -71,7 +71,7 @@ describe('Grid Sizing test', () => {
   });
 
   it('A 2X2 grid with 4 children 200 200 200 200 without gridTemplateColumns gridTemplateRows', () => {
-    const result = computeLayout(basicTestgridTemplateRowsColumnsNotProvided),
+    const result = computeLayout(testTwoCrossTwoNodesFillParent),
     expectedGrid = [{
       x: 0,
       x2: 200,

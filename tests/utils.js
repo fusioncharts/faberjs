@@ -51,7 +51,7 @@ const basicTwoCrossTwoNodeWithFourChildren = {
   ]
 };
 
-const basicTestgridTemplateRowsColumnsNotProvided2 = {
+const testUndeclearedTracklines = {
   style: {
     display: 'grid',
     width: 400,
@@ -102,7 +102,7 @@ const basicTestgridTemplateRowsColumnsNotProvided2 = {
   ]
 };
 
-const basicTestgridTemplateRowsColumnsNotProvided = {
+const testTwoCrossTwoNodesFillParent = {
   style: {
     display: 'grid',
     width: 400,
@@ -155,6 +155,6 @@ const basicTestgridTemplateRowsColumnsNotProvided = {
 
 export {
   basicTwoCrossTwoNodeWithFourChildren,
-  basicTestgridTemplateRowsColumnsNotProvided,
-  basicTestgridTemplateRowsColumnsNotProvided2
+  testUndeclearedTracklines,
+  testTwoCrossTwoNodesFillParent
 };
