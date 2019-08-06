@@ -1,5 +1,3 @@
-import { pluckNumber } from "../utils";
-
 const getMultiplierOfFr = size => +size.replace(/fr/, ''),
   _frSpaceDistributorHelper = (tracks, totalSpaceUsed, containerSize) => {
     let freeSpace,
@@ -43,7 +41,7 @@ const getMultiplierOfFr = size => +size.replace(/fr/, ''),
     
     minMaxTracks.sort(function (a, b) {
       let gap1 = a.growthLimit - a.baseSize,
-      gap2 = b.growthLimit - b.baseSize;
+        gap2 = b.growthLimit - b.baseSize;
       
       return gap1 - gap2;
     });
@@ -136,13 +134,13 @@ class TrackResolver {
           growthLimit = Math.max(+size[0], +size[1]);
           baseSize = Math.min(+size[0], +size[1]);
           config.intrinsicTracks.push(i);
-          type = 'minmax'
+          type = 'minmax';
         }
       } else if (!isNaN(+size)) {
         baseSize = growthLimit = +size;
         type = 'fixed';
       } else if (size.indexOf('fr') > 0) {
-        baseSize = 0
+        baseSize = 0;
         growthLimit = Infinity;
         config.frTracks.push(i);
         type = 'flex';

@@ -55,7 +55,7 @@ const validSizes = ['auto'],
         start: item[trackDir + 'Start'],
         end: item[trackDir + 'End'],
         size
-      }
+      };
     });
     return filteredItems;
   },
@@ -110,7 +110,6 @@ class Grid {
   _sanitizeTracks (_domTree = {}) {
     let style = _domTree.style,
       { gridTemplateRows, gridTemplateColumns } = style,
-      repeatResolvedTracks,
       config = this._config,
       trackInfo;
 
@@ -387,7 +386,7 @@ class Grid {
       item,
       len,
       i,
-      { justifyItems, alignItems, paddingStart, paddingEnd, paddingTop, paddingBottom } = domTree.style,
+      { justifyItems, alignItems, paddingStart, paddingTop } = domTree.style,
       trackWidth,
       trackHeight,
       width,
