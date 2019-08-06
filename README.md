@@ -134,35 +134,35 @@ const layout = computeLayout({
                 "height": 100
             }
         }
-    ],
+    ]
 }
 */
 ```
 
 ### Structure of input
 ```
-    {
-        style: {
-            height: required,
-            width: required,
-            display: grid,
-            gridTemplateColumns: 'space speparated track sizes',
-            gridTemplateRows: 'space speparated track sizes'
-        },
-        children: [] // Array of grid items which will be laid out
-    }
+{
+    style: {
+        height: required,
+        width: required,
+        display: grid,
+        gridTemplateColumns: 'space speparated track sizes',
+        gridTemplateRows: 'space speparated track sizes'
+    },
+    children: [] // Array of grid items which will be laid out
+}
 ```
 
 ### Structure of output
 ```
-    {
-        layout: {
-            x,
-            y,
-            x2,
-            y2
-        },
-    }
+{
+    layout: {
+        x,
+        y,
+        x2,
+        y2
+    },
+}
 ```
 
 ### Template with line names
