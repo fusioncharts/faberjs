@@ -109,7 +109,7 @@ class Grid {
   /**
    * Setter method to set props.
    *
-   * @param   {String} key
+   * @param   {string} key
    *          key represents the name by which the value is to be stored in props object.
    * @param   {any} value
    *          value is the information(can be anything) that has to be stored against the key.
@@ -126,7 +126,7 @@ class Grid {
   /**
    * Getter method to fetch props.
    *
-   * @param   {String} key
+   * @param   {string} key
    *          key of the value which has to be fetched.
    * @returns {Grid}
    *          Reference of the class instance.
@@ -139,7 +139,7 @@ class Grid {
   /**
    * Getter method to fetch config.
    *
-   * @param   {String} key
+   * @param   {string} key
    *          key of the value which has to be fetched.
    * @returns {Grid}
    *          Reference of the class instance.
@@ -158,7 +158,7 @@ class Grid {
    * 4. Once tracks are resolved and all tracks have their size, all the grid items are assigned their width, height, x and y(when applicable)
    *
    * @param {Object} _domTree
-   *        Full node tree consisting of grid containers and grid items.
+   *        Full node tree consisting of grid container and grid items.
    * @memberof Grid
    */
   compute (_domTree) {
@@ -170,6 +170,18 @@ class Grid {
       ._assignCoordinatesToCells(domTree);
   }
 
+  /**
+   * Rows and columns are refered as tracks in css-grid terminology.
+   * Track sanitization is required to account for any changes in the number of tracks by considering the grid items.
+   * Items are iterated to check if all the times can be accomodated within the user-defined grid cells. If not, tracks will
+   * be increased.
+   *
+   * @param   {Object} [_domTree={}]
+   *          Full node tree consisting of grid container and grid items.
+   * @returns {Grid}
+   *          Reference of the class instance.
+   * @memberof Grid
+   */
   _sanitizeTracks (_domTree = {}) {
     let style = _domTree.style,
       { gridTemplateRows, gridTemplateColumns } = style,
@@ -198,6 +210,18 @@ class Grid {
     return this;
   }
 
+  /**
+   * Any track is bounded by two lines, which are called grid lines. A grid line can have multiple names.
+   * To make calculations more easier, a map is maintained between line names and line numbers. 
+   *
+   * @param   {string} [tracks='none'] 
+   *          gridTemplateRows or gridTemplateColumns(user provided values)
+   * @returns {Object}
+   *          tracks: Array of tracks where track has it's start, end and size(provided by user) specified
+   *          nameToLineMap: Object where key is the name and the value is the line number
+   *          lineToNameMap: Object where key is the number and the value is the name
+   * @memberof Grid
+   */
   _fetchTrackInformation (tracks = 'none') {
     let i,
       len,
@@ -262,6 +286,17 @@ class Grid {
     };
   }
 
+  /**
+   * Sanitization of grid items. The gridRowStart and gridColumnStart values are replaced by the line numbers. Also,
+   * if any item do not have any gridRowStart and/or gridColumnEnd values mentioned, they are placed accordingly in
+   * empty cells in rowwise or columnwise manner, based on the value of gridAutoFlow.
+   *
+   * @param   {Object} _domTree
+   *          Full node tree consisting of grid container and grid items.
+   * @returns {Grid}
+   *          Reference of the class instance.
+   * @memberof Grid
+   */
   _sanitizeItems (_domTree) {
     let domTree = (_domTree || this.props.domTree),
       items = domTree.children || [],
