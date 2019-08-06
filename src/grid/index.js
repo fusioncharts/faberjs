@@ -182,7 +182,6 @@ class Grid {
     len = sizeList.length;
     if(tracks === "none"){
       len = this.getProps("maxTracks");
-      console.log(len);
       sizeList = 'auto,'.repeat(len).split(",");
       sizeList.pop();
     }
