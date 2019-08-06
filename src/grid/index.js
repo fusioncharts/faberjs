@@ -191,13 +191,11 @@ class Grid {
       startLineNames = (nameList[i] && nameList[i].replace(/\[|\]/g, '').split(' ').filter(name => name.length).map(name => name.trim())) || [i + 1 + ''];
       endLineNames = (nameList[i + 1] && nameList[i + 1].replace(/\[|\]/g, '').split(' ').filter(name => name.length).map(name => name.trim())) || [i + 2 + ''];
 
-      //getMaxRowColumn();
       sanitizedTracks.push({
         start: i + 1,
         end: i + 2,
         size: sizeList[i]
       });
-      //console.log(sanitizedTracks);
 
       // A line can have multiple names but a name can only be assigned to a single line
       lineToNameMap[i + 1] = startLineNames;
