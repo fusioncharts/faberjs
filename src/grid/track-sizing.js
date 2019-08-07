@@ -1,4 +1,7 @@
 const getMultiplierOfFr = size => +size.replace(/fr/, ''),
+  /**
+   * Helper function to distribute extra space among all the flexible tracks.
+   */
   _frSpaceDistributorHelper = (tracks, totalSpaceUsed, containerSize) => {
     let freeSpace,
       spacePerFrTrack,
@@ -23,6 +26,9 @@ const getMultiplierOfFr = size => +size.replace(/fr/, ''),
       eligibleTracks.forEach(track => (track.baseSize = track.multiplier * spacePerFrTrack));
     }
   },
+  /**
+   * Helper function to distribute extra space among all the intrinsic tracks.
+   */
   _intrinsicSpaceDistributorHelper = (tracks, totalSpaceUsed, containerSize) => {
     let freeSpace,
       spacePerIntrinsicTrack,
@@ -73,7 +79,7 @@ const getMultiplierOfFr = size => +size.replace(/fr/, ''),
   };
 
 /**
- * TrackResolver implements the standard track solving algorithm on CSS grid.
+ * TrackResolver implements the standard track solving algorithm of CSS grid.
  * Refer https://www.w3.org/TR/css-grid-1/#algo-track-sizing
  *
  * @class TrackResolver
@@ -269,6 +275,15 @@ class TrackResolver {
     return (this._config.sanitizedItems = sanitizedItems);
   }
 
+  /**
+   * If any grid item do not have a valid size, then it takes up the size of the track.
+   *
+   * @param   {Object} item
+   *          The item which do not have a proper size and will take up the size of the track.
+   * @returns {number}
+   *          size of the track(s) which will be assigned to the grid item.
+   * @memberof TrackResolver
+   */
   _getParentSize (item) {
     let { sanitizedTracks } = this._config,
       parentTracks,
@@ -281,6 +296,22 @@ class TrackResolver {
     return (widthOfParentTracks || 0);
   }
 
+  /**
+   * resolveTracks method is called to resolve the tracks.
+   *
+   * Terminology:
+   * Non-spanning items - items which is contained in a single track.
+   * Spanning items -  items which is spread across multiple tracks.
+   *
+   * 1. At first all the non-spanning items are placed. The tracks containing non-spanning gets a minimum size.
+   * 2. Then the spanning items are placed. If total size of all the tracks over which the spanning items are spread is less than
+   *  the size of the spanning items, then the extra space required by the item is accomodated equally by the non-fixed tracks.
+   * 3. Afer all the items are placed, if any free space remains, they get distributed among the non-fixed tracks.
+   *
+   * @returns {Array}
+   *          Array of objects where each object is a track with resolved size.
+   * @memberof TrackResolver
+   */
   resolveTracks () {
     this._placeNonSpanningItems()
       ._placeSpanningItems()
@@ -289,6 +320,14 @@ class TrackResolver {
     return this._config.sanitizedTracks;
   }
 
+  /**
+   * Placing a non-spanning item. After placing the item if the containing track has a non-fixed size, it is increased to
+   * accomodate the item.
+   *
+   * @returns {TrackResolver}
+   *          Reference of the class instance.
+   * @memberof TrackResolver
+   */
   _placeNonSpanningItems () {
     let { sanitizedItems, sanitizedTracks, nonSpanningItemStartIndex } = this._config,
       nonSpanningItems = sanitizedItems.slice(0, nonSpanningItemStartIndex),
@@ -308,6 +347,15 @@ class TrackResolver {
     return this;
   }
 
+  /**
+   * Place the non-spanning items. If the total size of all tracks on which the item is spread is less than
+   * the size of the item, then the extra size required is accomodated by equally increasing the size of
+   * all the non-fixed containing tracks.
+   *
+   * @returns {TrackResolver}
+   *          Reference of the class instance.
+   * @memberof TrackResolver
+   */
   _placeSpanningItems () {
     let { sanitizedItems, sanitizedTracks, nonSpanningItemStartIndex, frTracks } = this._config,
       spanningItems = sanitizedItems.slice(nonSpanningItemStartIndex),
@@ -353,6 +401,19 @@ class TrackResolver {
     return this;
   }
 
+  /**
+   * After all the items are placed and if any free space remains, it is distributed among the tracks.
+   * Distribution strategy depends on the track configurations.
+   * If there are tracks with flexible size
+   * definition(fr), then all the free space is allocated to those tracks.
+   * If there are no tracks with flexible size definiton, then the free space is distributed
+   * evenly among the intrinsic tracks.
+   * If all the tracks are fixed(ie, have fixed size), then the free space is not distributed.
+   *
+   * @returns {TrackResolver}
+   *          Reference of the class instance.
+   * @memberof TrackResolver
+   */
   _distributeFreeSpace () {
     let { frTracks, intrinsicTracks, sanitizedTracks } = this._config,
       { containerSize } = this.props,
@@ -373,6 +434,14 @@ class TrackResolver {
     return this;
   }
 
+  /**
+   * clears the props and configuration of TrackResolver. This method is called before using
+   * TrackResolver with different set of input.
+   *
+   * @returns {TrackResolver}
+   *          Reference of the class instance.
+   * @memberof TrackResolver
+   */
   clear () {
     this.props = {};
     this._config = {
