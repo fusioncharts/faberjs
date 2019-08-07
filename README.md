@@ -1,6 +1,7 @@
 # FaberJS
-FaberJS is an open source CSS Grid implementation. Unlike HTML element which can leverage power of CSS for Grid layouting, objects like SVG or custom objects cannot do that. Hence this library tries to solve that problem.
-For example we have have an object storing drawing information like dimensions and styles and then for laying itself in a parent container, Faber can be used.
+
+FaberJS is an open-source CSS Grid implementation. Unlike HTML element which can leverage the power of CSS for Grid layouts, objects like SVG or custom objects cannot do that. Hence this library tries to solve that problem.
+For example, we have an object storing drawing information like dimensions and styles and then for laying itself in a parent container, FaberJS can be used.
 
 ## Introduction to CSS Grid
 CSS Grid Layout is one of the most powerful layout system available in CSS. It is a 2-dimensional system, meaning it can handle both columns and rows, unlike flexbox which is largely a 1-dimensional system. You work with Grid Layout by applying CSS rules both to a parent element (which becomes the Grid Container) and to that element's children (which become Grid Items).
@@ -12,15 +13,15 @@ https://css-tricks.com/snippets/css/complete-guide-grid/
 
 ### Installation
 
-```
-git clone git@github.com:fusioncharts/faberjs.git
 
+```bash
+git clone git@github.com:fusioncharts/faberjs.git
 npm install
 npm start 
 ```
 
 **Define a Grid with template and items**
-```
+```js
 const parent = {
     style: {
         display: 'grid',
@@ -84,7 +85,7 @@ const children = [
 ];
 ```
 **Compute layout**
-```
+```js
 const layout = computeLayout({
     ...parent,
     children
@@ -141,7 +142,7 @@ const layout = computeLayout({
 ```
 
 ### Structure of input
-```
+```js
 {
     style: {
         height: required,
@@ -155,7 +156,7 @@ const layout = computeLayout({
 ```
 
 ### Structure of output
-```
+```js
 {
     layout: {
         x,
@@ -174,8 +175,10 @@ gridTemplateRows: '[row-1] 100 [row-2] 100'
 ```
 
 ### Alignments
-_Standard justification and alignment properties are supported, like justifyItems, alignItems, justifySelf, alignSelf_
+Standard justification and alignment properties are supported, like justify-items, align-items, justify-self, align-self
 
 
 ## Contribution Guide
-Refer the <https://www.github.com/fusioncharts/faberjs/blob/develop/contributing.md> contributing.md for more details
+
+Refer the [contributing.md](contributing.md) for more details
+
