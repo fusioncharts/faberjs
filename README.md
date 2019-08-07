@@ -1,6 +1,7 @@
 # FaberJS
+
 FaberJS is an open-source CSS Grid implementation. Unlike HTML element which can leverage the power of CSS for Grid layouts, objects like SVG or custom objects cannot do that. Hence this library tries to solve that problem.
-For example, we have an object storing drawing information like dimensions and styles and then for laying itself in a parent container, Mason can be used.
+For example, we have an object storing drawing information like dimensions and styles and then for laying itself in a parent container, FaberJS can be used.
 
 ## Introduction to CSS Grid
 CSS Grid Layout is one of the most powerful layout system available in CSS. It is a 2-dimensional system, meaning it can handle both columns and rows, unlike flexbox which is largely a 1-dimensional system. You work with Grid Layout by applying CSS rules both to a parent element (which becomes the Grid Container) and to that element's children (which become Grid Items).
@@ -12,9 +13,9 @@ https://css-tricks.com/snippets/css/complete-guide-grid/
 
 ### Installation
 
-```bash
-git clone git@github.com:fusioncharts/mason.git
 
+```bash
+git clone git@github.com:fusioncharts/faberjs.git
 npm install
 npm start 
 ```
@@ -178,4 +179,6 @@ Standard justification and alignment properties are supported, like justify-item
 
 
 ## Contribution Guide
+
 Refer the [contributing.md](contributing.md) for more details
+
