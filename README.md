@@ -1,4 +1,4 @@
-# FaberJS
+# FaberJS [![Build Status](https://travis-ci.org/fusioncharts/faberjs.svg?branch=develop)](https://travis-ci.org/fusioncharts/faberjs)
 
 FaberJS is an open-source layouting engine currently supporting CSS Grid like declarations. Unlike HTML element which can leverage the power of CSS for Grid layouts, objects like SVG or custom objects cannot do that. Hence this library tries to solve that problem.
 For example, we have an object storing drawing information like dimensions and styles and then for laying itself in a parent container, FaberJS can be used.
