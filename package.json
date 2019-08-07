@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server --host=0.0.0.0 --port 9000 --hot --config webpack.config.js",
+    "minify": "rm -rf es/ && npx babel src -d es --minified --no-comments",
     "build": "webpack --mode=production",
     "watch": "webpack --watch --mode=development",
     "lint": "npx eslint src/",

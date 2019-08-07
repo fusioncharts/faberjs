@@ -1,0 +1,1 @@
+"use strict";Object.defineProperty(exports,"__esModule",{value:true});Object.defineProperty(exports,"computeLayout",{enumerable:true,get:function get(){return _faber.computeLayout}});var _faber=require("./faber");
