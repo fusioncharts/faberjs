@@ -35,7 +35,7 @@ echo -e "${NC}";
 # make minified es modules
 npm run minify
 
-echo -e "${GREEN} Source filed minified successfully ${NC}";
+echo -e "${GREEN} Source files minified successfully ${NC}";
 
 # generate build files
 npm run build
