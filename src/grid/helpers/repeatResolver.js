@@ -1,3 +1,23 @@
+/**
+ * Resolve repeat configurations if provided in gridTemplateRows or gridTemplateColumns.
+ * Based on the size provided by the parent, this method re-defines the gridTemplateRows and/or
+ * gridTemplateColumns attributes of the grid container.
+ *
+ * @param   {Object} domTree
+ *          Object representing the node. The value of gridTemplateColumns and gridTemplateRows are taken from the style
+ *          object of node
+ * @param   {Object} parentInfo
+ *          Object containing the following properties
+ *          {
+ *            itemWidth: width of item
+ *            width: width of track
+ *          }
+ * @returns {Object}
+ *          {
+ *            gridTemplateColumns: resolved gridTemplateColumns
+ *            gridTemplateRows: resolved gridTemplateRows
+ *          }
+ */
 function repeatResolver (domTree, parentInfo) {
   let { children } = domTree,
     rowWidth = 0,
