@@ -1,7 +1,7 @@
 {
   "name": "faberjs",
   "version": "0.1.0",
-  "description": "Faberjs is an OpenSource layouting engine.",
+  "description": "Faberjs is an open-source platform-independent layouting engine capable of mimicking different CSS layouting paradigm",
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server --host=0.0.0.0 --port 9000 --hot --config webpack.config.js",
