@@ -1,4 +1,4 @@
-import { ATOMIC_DATA_TYPE } from "./constants";
+import { ATOMIC_DATA_TYPE } from './constants';
 
 let UNDEF;
 

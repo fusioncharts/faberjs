@@ -1,7 +1,17 @@
-export const DISPLAY_GRID = 'grid';
-export const DISPLAY_FLEX = 'flex';
-export const CENTER = 'center';
-export const START = 'start';
-export const END = 'end';
-export const STRETCH = 'stretch';
-export const ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'];
+const DISPLAY_GRID = 'grid',
+  DISPLAY_FLEX = 'flex',
+  CENTER = 'center',
+  START = 'start',
+  END = 'end',
+  STRETCH = 'stretch',
+  ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'];
+
+export {
+  DISPLAY_GRID,
+  DISPLAY_FLEX,
+  CENTER,
+  START,
+  END,
+  STRETCH,
+  ATOMIC_DATA_TYPE
+};

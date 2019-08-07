@@ -3,6 +3,7 @@ module.exports = {
         "browser": true,
         "es6": true
     },
+    "root": true,
     "extends": "eslint:recommended",
     "globals": {
         "Atomics": "readonly",

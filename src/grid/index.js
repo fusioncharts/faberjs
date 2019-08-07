@@ -1,7 +1,7 @@
-import { getDisplayProperty, pluckNumber } from "../utils";
-import TrackResolver from "./track-sizing";
-import { CENTER, END, STRETCH } from "../utils/constants";
-import { repeatResolver } from "./helpers/repeatResolver";
+import { getDisplayProperty, pluckNumber } from '../utils';
+import TrackResolver from './track-sizing';
+import { CENTER, END, STRETCH } from '../utils/constants';
+import { repeatResolver } from './helpers/repeatResolver';
 
 const validSizes = ['auto', 'none'],
   minmaxRegex = /minmax/,
@@ -69,11 +69,11 @@ const validSizes = ['auto', 'none'],
       }
     }
   },
-  getMaxRowColumn = (items) =>{
+  getMaxRowColumn = items => {
     let maxRow = 1, maxColumn = 1;
     items.forEach((item) => {
-      maxColumn = Math.max(isNaN(item.style.gridColumnStart) ? 0 : item.style.gridColumnStart, maxColumn, isNaN(item.style.gridColumnEnd * 1 - 1) ? 0 : item.style.gridColumnEnd*1 - 1);
-      maxRow = Math.max(isNaN(item.style.gridRowStart) ? 0 : item.style.gridRowStart, maxRow, isNaN(item.style.gridRowEnd * 1 - 1) ? 0 : item.style.gridRowEnd*1 - 1);
+      maxColumn = Math.max(isNaN(item.style.gridColumnStart) ? 0 : item.style.gridColumnStart, maxColumn, isNaN(item.style.gridColumnEnd * 1 - 1) ? 0 : item.style.gridColumnEnd * 1 - 1);
+      maxRow = Math.max(isNaN(item.style.gridRowStart) ? 0 : item.style.gridRowStart, maxRow, isNaN(item.style.gridRowEnd * 1 - 1) ? 0 : item.style.gridRowEnd * 1 - 1);
     });
     return {
       maxRow,
@@ -128,8 +128,8 @@ class Grid {
    *
    * @param   {string} key
    *          key of the value which has to be fetched.
-   * @returns {Grid}
-   *          Reference of the class instance.
+   * @returns {any}
+   *          value corresponding to the key in props object
    * @memberof Grid
    */
   getProps (key) {
@@ -141,8 +141,8 @@ class Grid {
    *
    * @param   {string} key
    *          key of the value which has to be fetched.
-   * @returns {Grid}
-   *          Reference of the class instance.
+   * @returns {any}
+   *          alue corresponding to the key in _config object
    * @memberof Grid
    */
   getConfig (key) {
@@ -186,10 +186,10 @@ class Grid {
     let style = _domTree.style,
       { gridTemplateRows, gridTemplateColumns } = style,
       config = this._config,
-      trackInfo;
+      trackInfo,
+      { maxColumn, maxRow } = getMaxRowColumn(_domTree.children);
 
-    let {maxColumn, maxRow} = getMaxRowColumn(_domTree.children);
-    this.set("maxTracks", maxRow);
+    this.set('maxTracks', maxRow);
 
     trackInfo = this._fetchTrackInformation(gridTemplateRows);
     config.mapping.row = {
@@ -198,7 +198,7 @@ class Grid {
     };
     config.rowTracks = trackInfo.tracks;
 
-    this.set("maxTracks", maxColumn);
+    this.set('maxTracks', maxColumn);
     trackInfo = this._fetchTrackInformation(gridTemplateColumns);
     config.mapping.col = {
       nameToLineMap: trackInfo.nameToLineMap,
@@ -211,9 +211,9 @@ class Grid {
 
   /**
    * Any track is bounded by two lines, which are called grid lines. A grid line can have multiple names.
-   * To make calculations more easier, a map is maintained between line names and line numbers. 
+   * To make calculations more easier, a map is maintained between line names and line numbers.
    *
-   * @param   {string} [tracks='none'] 
+   * @param   {string} [tracks='none']
    *          gridTemplateRows or gridTemplateColumns(user provided values)
    * @returns {Object}
    *          tracks: Array of tracks where track has it's start, end and size(provided by user) specified
@@ -255,8 +255,8 @@ class Grid {
     }).map(size => getCleanSize(size));
 
     len = sizeList.length;
-    if(tracks === "none"){
-      len = this.getProps("maxTracks");
+    if (tracks === 'none') {
+      len = this.getProps('maxTracks');
     }
 
     for (i = 0; i < len; i++) {
@@ -272,8 +272,8 @@ class Grid {
       // A line can have multiple names but a name can only be assigned to a single line
       lineToNameMap[i + 1] = startLineNames;
       lineToNameMap[i + 2] = endLineNames;
-      startLineNames.forEach(name => nameToLineMap[name] = i + 1);
-      endLineNames.forEach(name => nameToLineMap[name] = i + 2);
+      startLineNames.forEach(name => (nameToLineMap[name] = i + 1));
+      endLineNames.forEach(name => (nameToLineMap[name] = i + 2));
       nameToLineMap[i + 1] = i + 1;
       nameToLineMap[i + 2] = i + 2;
     }
@@ -332,7 +332,7 @@ class Grid {
       updateMatrix(gridMatrix, {x: item.colStart, y: item.rowStart}, {x: item.colEnd, y: item.rowEnd});
     }
 
-    autoFlowItems = sanitizedItems.filter(item => (!item.colStart || !item.rowStart));
+    autoFlowItems = sanitizedItems.filter(sanitizedItem => (!sanitizedItem.colStart || !sanitizedItem.rowStart));
 
     /**
      * @todo: Scope to improve code here.
@@ -397,7 +397,7 @@ class Grid {
    * Track solving algorithm is used to calculate the size of each track. First the column tracks are resolved, then the
    * row tracks. For track solving algorithm to run, it is important to resolve all the nested grids. Solving the nested
    * grids allows to consider their min-content contribution while solving tracks of parent grid.
-   * 
+   *
    * An exception arises if a nested grid has repeat in either of the gridTemplateColumns or gridTemplateRows property.
    * In that case, the nested grid is solved once the column tracks of the parent grid is solved.
    *
@@ -489,7 +489,7 @@ class Grid {
       colStart = mapping.col.nameToLineMap[child.style.gridColumnStart];
       colEnd = mapping.col.nameToLineMap[child.style.gridColumnEnd];
 
-      trackWidth = colTrackDp[colEnd - 1 ] - colTrackDp[colStart - 1];
+      trackWidth = colTrackDp[colEnd - 1] - colTrackDp[colStart - 1];
       parentInfo = {
         itemWidth: parsedWidthOfItem,
         width: trackWidth

@@ -4,23 +4,23 @@ const getMultiplierOfFr = size => +size.replace(/fr/, ''),
       spacePerFrTrack,
       eligibleTracks,
       totalFrTrackRatio = 0;
-      
+
     if (!tracks.length) {
       return;
     }
 
-    tracks.forEach(track => totalFrTrackRatio += track.multiplier);
+    tracks.forEach(track => (totalFrTrackRatio += track.multiplier));
 
     freeSpace = containerSize - totalSpaceUsed;
     spacePerFrTrack = freeSpace / totalFrTrackRatio;
-    
+
     eligibleTracks = tracks.filter(track => track.baseSize <= track.multiplier * spacePerFrTrack);
 
     if (eligibleTracks.length < tracks.length) {
-      tracks.filter(track => track.baseSize > track.multiplier * spacePerFrTrack).forEach(track => totalSpaceUsed += track.baseSize);
+      tracks.filter(track => track.baseSize > track.multiplier * spacePerFrTrack).forEach(track => (totalSpaceUsed += track.baseSize));
       return _frSpaceDistributorHelper(eligibleTracks, totalSpaceUsed, containerSize);
     } else {
-      eligibleTracks.forEach(track => track.baseSize = track.multiplier * spacePerFrTrack);
+      eligibleTracks.forEach(track => (track.baseSize = track.multiplier * spacePerFrTrack));
     }
   },
   _intrinsicSpaceDistributorHelper = (tracks, totalSpaceUsed, containerSize) => {
@@ -32,29 +32,29 @@ const getMultiplierOfFr = size => +size.replace(/fr/, ''),
       minMaxTracks,
       growthLimit,
       baseSize;
-      
+
     if (!tracks.length) {
       return;
     }
     minMaxTracks = tracks.filter(track => track.type === 'minmax' && track.growthLimit !== Infinity);
     freeSpace = containerSize - totalSpaceUsed;
-    
+
     minMaxTracks.sort(function (a, b) {
       let gap1 = a.growthLimit - a.baseSize,
         gap2 = b.growthLimit - b.baseSize;
-      
+
       return gap1 - gap2;
     });
-    
+
     len = minMaxTracks.length;
     while (frozenTrack < len && freeSpace) {
       spacePerIntrinsicTrack = freeSpace / ((minMaxTracks.length - frozenTrack) || 1);
       /**
        * @todo: remove the frozen tracks.
        */
-      for (i = 0, len = minMaxTracks.length; i <  len; i++) {
+      for (i = 0, len = minMaxTracks.length; i < len; i++) {
         growthLimit = minMaxTracks[i].growthLimit;
-        
+
         baseSize = Math.min(spacePerIntrinsicTrack + minMaxTracks[i].baseSize, growthLimit);
         freeSpace -= (baseSize - minMaxTracks[i].baseSize);
         minMaxTracks[i].baseSize = baseSize;
@@ -69,9 +69,15 @@ const getMultiplierOfFr = size => +size.replace(/fr/, ''),
     tracks = tracks.filter(track => (track.type === 'minmax' && track.growthLimit === Infinity) || track.type !== 'minmax');
     spacePerIntrinsicTrack = freeSpace / tracks.length;
 
-    tracks.forEach(track => track.baseSize += spacePerIntrinsicTrack);
+    tracks.forEach(track => (track.baseSize += spacePerIntrinsicTrack));
   };
 
+/**
+ * TrackResolver implements the standard track solving algorithm on CSS grid.
+ * Refer https://www.w3.org/TR/css-grid-1/#algo-track-sizing
+ *
+ * @class TrackResolver
+ */
 class TrackResolver {
   constructor (tracks = [], items = [], containerSize = 600) {
     this.clear();
@@ -82,6 +88,17 @@ class TrackResolver {
     return this;
   }
 
+  /**
+   * setter method to set props
+   *
+   * @param   {string} key
+   *          key represents the name by which the value is to be stored in props object.
+   * @param   {any} info
+   *          info is the information(can be anything) that has to be stored against the key.
+   * @returns {TrackResolver}
+   *          Reference of the class instance.
+   * @memberof TrackResolver
+   */
   set (key, info) {
     this.props[key] = info;
 
@@ -96,10 +113,44 @@ class TrackResolver {
     return this;
   }
 
+  /**
+   * Getter method to fetch the props
+   *
+   * @param   {string} key
+   *          key of the value which has to be fetched.
+   * @returns {any}
+   *          alue corresponding to the key in props object
+   * @memberof TrackResolver
+   */
   get (key) {
     return this.props[key];
   }
 
+  /**
+   * Initializes the tracks. Both rows and columns in grid are tracks in TrackResolver.
+   * Each track is assigned a baseSize and growthLimit. BaseSize is the minimum size that a track can take,
+   * while growthLimit is the max size.
+   *
+   * Terminology:
+   * FrTracks: Tracks which have a size definition in terms of fr(free space)
+   * Intrinsic Tracks: Tracks which have a size definition of auto.
+   *
+   * @param   {Array} _tracks
+   *          Array containing information about the tracks.
+   * @returns {Array}
+   *          Array of sanitized tracks. A sanitized track consists of the following information
+   *          {
+   *              type: minmax | fixed | flex | intrinsic
+   *                    minmax: track has size definition in minmax format
+   *                    fixed: a fixed numeric value is provided as size definition
+   *                    flex: size definition is provided in terms of fr
+   *                    intrinsic: auto size definition
+   *              multiplier: Prefix of fr(2 in case of 2fr). default 1.
+   *              baseSize: lower size limit of track.
+   *              growthLimit: upper size limit of track.
+   *          }
+   * @memberof TrackResolver
+   */
   _initTrackSize (_tracks) {
     let tracks = _tracks || this.props.tracks || [],
       config = this._config,
@@ -164,6 +215,16 @@ class TrackResolver {
     return (config.sanitizedTracks = trackAr);
   }
 
+  /**
+   * The size of grid items are sanitized in this method. In case the items do not have a valid size, they
+   * take up size of the tracks
+   *
+   * @param   {Array} _items
+   *          Array of grid items
+   * @returns {Array}
+   *          Array of items where each item has valid size
+   * @memberof TrackResolver
+   */
   _initItems (_items) {
     let items = _items || this.props.items || [],
       config = this._config,
@@ -180,7 +241,7 @@ class TrackResolver {
         continue;
       }
       sanitizedItems.push({...items[i]});
-      
+
       item = sanitizedItems[validItems];
       validItems++;
 
@@ -193,7 +254,7 @@ class TrackResolver {
 
       if (gap1 === gap2) {
         return a.start - b.start;
-      } else return gap1 - gap2;
+      } else { return gap1 - gap2; }
     });
 
     for (i = 0, nonSpanningItemStartIndex = len = sanitizedItems.length; i < len; i++) {
@@ -215,7 +276,7 @@ class TrackResolver {
 
     parentTracks = sanitizedTracks.filter(track => (track.start >= item.start && track.end <= item.end));
 
-    parentTracks.forEach(track => widthOfParentTracks += track.baseSize);
+    parentTracks.forEach(track => (widthOfParentTracks += track.baseSize));
 
     return (widthOfParentTracks || 0);
   }
@@ -297,15 +358,15 @@ class TrackResolver {
       { containerSize } = this.props,
       totalSpaceUsed = 0;
 
-    sanitizedTracks.forEach(track => totalSpaceUsed += (track.baseSize || 0));
+    sanitizedTracks.forEach(track => (totalSpaceUsed += (track.baseSize || 0)));
 
     if (totalSpaceUsed < containerSize) {
       if (frTracks.length) {
-        frTracks.forEach((trackId, index) => {frTracks[index] = sanitizedTracks[trackId];});
-        frTracks.forEach(track => totalSpaceUsed -= track.baseSize);
+        frTracks.forEach((trackId, index) => { frTracks[index] = sanitizedTracks[trackId]; });
+        frTracks.forEach(track => (totalSpaceUsed -= track.baseSize));
         _frSpaceDistributorHelper(frTracks, totalSpaceUsed, containerSize);
       } else if (intrinsicTracks.length) {
-        intrinsicTracks.forEach((trackId, index) => {intrinsicTracks[index] = sanitizedTracks[trackId];});
+        intrinsicTracks.forEach((trackId, index) => { intrinsicTracks[index] = sanitizedTracks[trackId]; });
         _intrinsicSpaceDistributorHelper(intrinsicTracks, totalSpaceUsed, containerSize);
       }
     }
