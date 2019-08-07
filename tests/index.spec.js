@@ -1,4 +1,4 @@
-import { computeLayout } from "../src/mason";
+import { computeLayout } from "../src/faber";
 import { basicTwoCrossTwoNodeWithFourChildren, testUndeclearedTracklines, testTwoCrossTwoNodesFillParent } from "./utils";
 
 describe('Grid Sizing test', () => {

@@ -1,4 +1,4 @@
-import { computeLayout } from './mason';
+import { computeLayout } from './faber';
 
 export {
   computeLayout

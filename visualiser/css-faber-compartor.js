@@ -187,12 +187,11 @@ const chart2 = {
   ],
 };
 
-// Mason.computeLayout(chart);
-console.log(Mason.computeLayout(chart));
+console.log(faber.computeLayout(chart));
 
 function getHTMLCSSInlined () {
   const htmlContainerEl = document.getElementsByClassName('html')[0];
-  const masonContainerEl = document.getElementsByClassName('mason')[0];
+  const faberContainerEl = document.getElementsByClassName('faber')[0];
   htmlContainerEl.style.display = 'grid';
   htmlContainerEl.style.gridTemplateColumns = chart.style.templateColumnsHTML.join(" ");
   htmlContainerEl.style.gridTemplateRows = chart.style.templateRowsHTML.join(" ");
@@ -201,9 +200,9 @@ function getHTMLCSSInlined () {
   htmlContainerEl.style.width = chart.style.width;
   htmlContainerEl.style.height = chart.style.height;
 
-  masonContainerEl.style.width = chart.style.width;
-  masonContainerEl.style.height = chart.style.height;
-  masonContainerEl.style.position = 'relative';
+  faberContainerEl.style.width = chart.style.width;
+  faberContainerEl.style.height = chart.style.height;
+  faberContainerEl.style.position = 'relative';
 
   chart.children.forEach(child => {
     const childEl = document.createElement('div');
@@ -213,7 +212,7 @@ function getHTMLCSSInlined () {
     childEl.style.position = 'absolute';
     childEl.style.left = child.layout.x;
     childEl.style.top = child.layout.y;
-    masonContainerEl.appendChild(childEl);
+    faberContainerEl.appendChild(childEl);
   });
 
   chart.children.forEach(child => {

@@ -24,12 +24,12 @@ class LayoutEngine {
  * @param {Object} domTree Object containing the layout node information
  */
 const computeLayout = (domTree) => {
-  const mason = new LayoutEngine();
+  const faber = new LayoutEngine();
   let clonedDomTree = cloneObject(domTree),
     calculatedTree;
 
   clonedDomTree.root = true;
-  calculatedTree = mason.compute(clonedDomTree);
+  calculatedTree = faber.compute(clonedDomTree);
   attachLayoutInformation(domTree, calculatedTree);
 
   return domTree;
