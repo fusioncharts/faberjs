@@ -153,8 +153,16 @@ const testTwoCrossTwoNodesFillParent = {
   ]
 };
 
+const isCloseTo = (arg1, arg2, maxBuffer = 0) => {
+  if (Math.abs(arg1 - arg2) <= maxBuffer) {
+    return true;
+  }
+  return false;
+};
+
 export {
   basicTwoCrossTwoNodeWithFourChildren,
   testUndeclearedTracklines,
-  testTwoCrossTwoNodesFillParent
+  testTwoCrossTwoNodesFillParent,
+  isCloseTo
 };
