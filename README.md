@@ -46,8 +46,7 @@ const children = [
             gridColumnEnd: 2,
             gridRowStart: 1,
             gridRowEnd: 2
-        },
-        layout: {}
+        }
     },
     {
         style: {
@@ -57,8 +56,7 @@ const children = [
             gridColumnEnd: 3,
             gridRowStart: 1,
             gridRowEnd: 2
-        },
-        layout: {}
+        }
     },
     {
         style: {
@@ -68,8 +66,7 @@ const children = [
             gridColumnEnd: 2,
             gridRowStart: 2,
             gridRowEnd: 3
-        },
-        layout: {}
+        }
     },
     {
         style: {
@@ -79,8 +76,7 @@ const children = [
             gridColumnEnd: 3,
             gridRowStart: 2,
             gridRowEnd: 3
-        },
-        layout: {}
+        }
     }
 ];
 ```
@@ -97,7 +93,7 @@ const layout = computeLayout({
 
     "children": [
         {
-            "layout": {
+            "style": {
                 "x": 10,
                 "y": 10,
                 "x2": 110,
@@ -107,7 +103,7 @@ const layout = computeLayout({
             }
         },
         {
-            "layout": {
+            "style": {
                 "x": 110,
                 "y": 10,
                 "x2": 210,
@@ -117,7 +113,7 @@ const layout = computeLayout({
             }
         },
         {
-            "layout": {
+            "style": {
                 "x": 10,
                 "y": 110,
                 "x2": 110,
@@ -127,7 +123,7 @@ const layout = computeLayout({
             }
         },
         {
-            "layout": {
+            "style": {
                 "x": 110,
                 "y": 110,
                 "x2": 210,
@@ -156,13 +152,16 @@ const layout = computeLayout({
 ```
 
 ### Structure of output
+Each node will receive a layout object containing the following information.
 ```js
 {
     layout: {
         x,
         y,
         x2,
-        y2
+        y2,
+        width,
+        height
     },
 }
 ```
@@ -180,5 +179,5 @@ Standard justification and alignment properties are supported, like justify-item
 
 ## Contribution Guide
 
-Refer the [contributing.md](contributing.md) for more details
+Refer the [CONTRIBUTING.md](CONTRIBUTING.md) before starting any contribution.
 
