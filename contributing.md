@@ -1,18 +1,9 @@
-# Contributing
+# How to Contribute
 
 When contributing to this repository, please first discuss the change you wish to make via issue,
 email, or any other method with the owners of this repository before making a change. 
 
 Please note we have a code of conduct, please follow it in all your interactions with the project.
-
-## Pull Request Process
-
-1. Ensure any install or build dependencies are removed before the end of the layer when doing a 
-   build.
-2. Update the README.md with details of changes to the interface, this includes new environment 
-   variables, exposed ports, useful file locations and container parameters.
-3. You may merge the Pull Request in once you have the sign-off of two other developers, or if you 
-   do not have permission to do that, you may request the second reviewer to merge it for you.
 
 ## Code of Conduct
 
@@ -88,3 +79,46 @@ available at [http://contributor-covenant.org/version/1/4][version]
 
 [homepage]: http://contributor-covenant.org
 [version]: http://contributor-covenant.org/version/1/4/
+
+## Bugs
+
+### Where to Find Known Issues
+We use the github issues for our public bugs. The status of a bug is clearly mentioned in the comments.
+Before filing a new bug, please look into the existing issues and make sure that your problem does not
+already exist.
+
+### Reporting New Issues
+While reporting a new issue, please provide a reduced testcase in the form of code-snippets and/or
+jsfiddle links
+
+## Proposing a change
+If you intend to change the public API, or make any non-trivial changes to the implementation, we recommend filing an issue. This lets us reach an agreement on your proposal before you put significant effort into it.
+
+If you’re only fixing a bug, it’s fine to submit a pull request right away but we still recommend to file an issue detailing what you’re fixing. This is helpful in case we don’t accept that specific fix but want to keep track of the issue.
+
+## Your First Pull Request
+
+Working on your first Pull Request? You can learn how from this free video series:
+
+> [How to contribute to Open Source Project on Github](https://egghead.io/courses/how-to-contribute-to-an-open-source-project-on-github)
+
+The [good first issues](https://github.com/fusioncharts/faberjs/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) are a great place to start and get an idea of how things are working.
+
+If you decide to fix an issue, please be sure to check the comment thread in case somebody is already working on a fix. If nobody is working on it at the moment, please leave a comment stating that you intend to work on it so other people don’t accidentally duplicate your effort.
+
+If somebody claims an issue but doesn’t follow up for more than two weeks, it’s fine to take it over but you should still leave a comment.
+
+## Sending a Pull Request
+Project maintainers are constantly monitoring for any new pull requests. Maintainers will review the PRs and either merge it, request for change or close it with an explanation.
+
+Please make sure the following steps are done before submitting a pull request:
+
+1. Fork [this repository](https://github.com/fusioncharts/faberjs) and create a branch from `develop`.
+2. Run `npm install` at the repositoty root.
+3. For a bug fix and/or new feature, adequate tests should be added.
+4. Run `npm run test` to run lint, create minified es modules and create both development and production builds.
+5. Commit and push the changes to your branch.
+6. Send a pull request to the `develop` branch of original repository.
+
+## License
+By contributing to FaberJS, you agree that your contributions will be licensed under its MIT license.
