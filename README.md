@@ -179,5 +179,5 @@ Standard justification and alignment properties are supported, like justify-item
 
 ## Contribution Guide
 
-Refer the [CONTRIBUTING.md](CONTRIBUTING.md) before starting any contribution.
+Refer the [CONTRIBUTING.md](contributing.md) before starting any contribution.
 
