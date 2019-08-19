@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#-----------------------------------------------------------------------------------
+# THIS SCRIPT IS TO PERFORM THE TESTS ON THE BUILD OF FABER
+# TEST INCLUDE MAKING LINTING, MAKING BUILD AND TESTING
+#-----------------------------------------------------------------------------------
+
+GREEN='\033[0;32m'
+YELLOW='\033[33m'
+NC='\033[0m'
+
+set -e
+
+# Run lint on the build
+echo -e "${YELLOW}";
+echo "  _    _     _   _           ";
+echo " | |  (_)_ _| |_(_)_ _  __ _ ";
+echo " | |__| | ' \  _| | ' \/ _\`|";
+echo " |____|_|_||_\__|_|_||_\__, |";
+echo "                       |___/ ";
+echo -e "${NC}";
+
+eslint src/; true
+
+echo -e "${GREEEN} Lint passed ${NC}";
+
+echo -e "${YELLOW}";
+echo "   ___                _ _ _           ";
+echo "  / __|___ _ __  _ __(_) (_)_ _  __ _ ";
+echo " | (__/ _ \ '  \| '_ \ | | | ' \/ _\` |";
+echo "  \___\___/_|_|_| .__/_|_|_|_||_\__, |";
+echo "                |_|             |___/ ";
+echo -e "${NC}";
+
+# make minified es modules
+npm run minify
+
+echo -e "${GREEN} Source files minified successfully ${NC}";
+
+# generate build files
+npm run build
+
+echo -e "${GREEN} Build files generated successfully ${NC}";
+
+echo -e "${YELLOW}";
+echo "_____         _   _              "
+echo "|_   _|       | | (_)            "
+echo "  | | ___  ___| |_ _ _ __   __ _ "
+echo "  | |/ _ \/ __| __| | \'_ \ / _\`|"
+echo "  | |  __/\__ \ |_| | | | | (_| |"
+echo "  \_/\___||___/\__|_|_| |_|\__, | "
+echo "                            __/ | "
+echo "                           |___/  "
+echo -e "${NC}";
+
+jest
+
+echo -e "${GREEN} Test passed ${NC}";

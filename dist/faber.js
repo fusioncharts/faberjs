@@ -4,9 +4,9 @@
 	else if(typeof define === 'function' && define.amd)
 		define([], factory);
 	else if(typeof exports === 'object')
-		exports["Mason"] = factory();
+		exports["faber"] = factory();
 	else
-		root["Mason"] = factory();
+		root["faber"] = factory();
 })(window, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -96,6 +96,78 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ({
 
+/***/ "./src/faber.js":
+/*!**********************!*\
+  !*** ./src/faber.js ***!
+  \**********************/
+/*! exports provided: computeLayout */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "computeLayout", function() { return computeLayout; });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils/index.js");
+/* harmony import */ var _utils_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/constants */ "./src/utils/constants.js");
+/* harmony import */ var _grid__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./grid */ "./src/grid/index.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+
+
+
+var LayoutEngine =
+/*#__PURE__*/
+function () {
+  function LayoutEngine() {
+    _classCallCheck(this, LayoutEngine);
+
+    this.gridLayoutEngine = _grid__WEBPACK_IMPORTED_MODULE_2__["computeGridLayout"];
+  }
+
+  _createClass(LayoutEngine, [{
+    key: "compute",
+    value: function compute(domTree) {
+      switch (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(domTree)) {
+        case _utils_constants__WEBPACK_IMPORTED_MODULE_1__["DISPLAY_GRID"]:
+          return this.gridLayoutEngine(domTree);
+
+        case _utils_constants__WEBPACK_IMPORTED_MODULE_1__["DISPLAY_FLEX"]:
+          return this.gridLayoutEngine(domTree);
+
+        default:
+          // Probably throw unsupported error?
+          return this.gridLayoutEngine(domTree);
+      }
+    }
+  }]);
+
+  return LayoutEngine;
+}();
+/**
+ * Public API used externally to provide input to layout engine
+ *
+ * @param {Object} domTree Object containing the layout node information
+ */
+
+
+var computeLayout = function computeLayout(domTree) {
+  var faber = new LayoutEngine();
+  var clonedDomTree = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["cloneObject"])(domTree),
+      calculatedTree;
+  clonedDomTree.root = true;
+  calculatedTree = faber.compute(clonedDomTree);
+  Object(_utils__WEBPACK_IMPORTED_MODULE_0__["attachLayoutInformation"])(domTree, calculatedTree);
+  return domTree;
+};
+
+
+
+/***/ }),
+
 /***/ "./src/grid/helpers/repeatResolver.js":
 /*!********************************************!*\
   !*** ./src/grid/helpers/repeatResolver.js ***!
@@ -106,16 +178,28 @@ return /******/ (function(modules) { // webpackBootstrap
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "repeatResolver", function() { return repeatResolver; });
-var repeatDetectionRegex = /repeat\(/g,
-    parseRepeatFunction = function parseRepeatFunction(repeatStr) {
-  return repeatStr.split(/\(|\)/g)[1].split(',').map(function (arg) {
-    return arg && arg.trim();
-  });
-};
-
+/**
+ * Resolve repeat configurations if provided in gridTemplateRows or gridTemplateColumns.
+ * Based on the size provided by the parent, this method re-defines the gridTemplateRows and/or
+ * gridTemplateColumns attributes of the grid container.
+ *
+ * @param   {Object} domTree
+ *          Object representing the node. The value of gridTemplateColumns and gridTemplateRows are taken from the style
+ *          object of node
+ * @param   {Object} parentInfo
+ *          Object containing the following properties
+ *          {
+ *            itemWidth: width of item
+ *            width: width of track
+ *          }
+ * @returns {Object}
+ *          {
+ *            gridTemplateColumns: resolved gridTemplateColumns
+ *            gridTemplateRows: resolved gridTemplateRows
+ *          }
+ */
 function repeatResolver(domTree, parentInfo) {
-  var style = domTree.style,
-      children = domTree.children,
+  var children = domTree.children,
       rowWidth = 0,
       numOfRows,
       itemInARow = 0,
@@ -197,7 +281,7 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 
 
-var validSizes = ['auto'],
+var validSizes = ['auto', 'none'],
     minmaxRegex = /minmax/,
     // repeatFunctionRegex = /repeat\(/g,
 // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
@@ -264,16 +348,40 @@ templateSplitRegex = ' ',
       grid[i][j] = true;
     }
   }
+},
+    getMaxRowColumn = function getMaxRowColumn(items) {
+  var maxRow = 1,
+      maxColumn = 1;
+  items.forEach(function (item) {
+    maxColumn = Math.max(isNaN(item.style.gridColumnStart) ? 0 : item.style.gridColumnStart, maxColumn, isNaN(item.style.gridColumnEnd * 1 - 1) ? 0 : item.style.gridColumnEnd * 1 - 1);
+    maxRow = Math.max(isNaN(item.style.gridRowStart) ? 0 : item.style.gridRowStart, maxRow, isNaN(item.style.gridRowEnd * 1 - 1) ? 0 : item.style.gridRowEnd * 1 - 1);
+  });
+  return {
+    maxRow: maxRow,
+    maxColumn: maxColumn
+  };
 };
 
 var Grid =
 /*#__PURE__*/
 function () {
+  /**
+   * Creates an instance of Grid. Initializes the props and _config object.
+   * @memberof Grid
+   */
   function Grid() {
     _classCallCheck(this, Grid);
 
     this.setup();
   }
+  /**
+   * Initializes _config, props objects. Also initializes and stores a new instance of TrackResolver.
+   *
+   * @returns {Grid}
+   *          Reference of the class instance.
+   * @memberof Grid
+   */
+
 
   _createClass(Grid, [{
     key: "setup",
@@ -285,22 +393,67 @@ function () {
       };
       return this;
     }
+    /**
+     * Setter method to set props.
+     *
+     * @param   {string} key
+     *          key represents the name by which the value is to be stored in props object.
+     * @param   {any} value
+     *          value is the information(can be anything) that has to be stored against the key.
+     * @returns {Grid}
+     *          Reference of the class instance.
+     * @memberof Grid
+     */
+
   }, {
     key: "set",
     value: function set(key, value) {
       this.props[key] = value;
       return this;
     }
+    /**
+     * Getter method to fetch props.
+     *
+     * @param   {string} key
+     *          key of the value which has to be fetched.
+     * @returns {any}
+     *          value corresponding to the key in props object
+     * @memberof Grid
+     */
+
   }, {
     key: "getProps",
     value: function getProps(key) {
       return this.props[key];
     }
+    /**
+     * Getter method to fetch config.
+     *
+     * @param   {string} key
+     *          key of the value which has to be fetched.
+     * @returns {any}
+     *          alue corresponding to the key in _config object
+     * @memberof Grid
+     */
+
   }, {
     key: "getConfig",
     value: function getConfig(key) {
       return this._config[key];
     }
+    /**
+     * compute method is called to calculate the layout. This is the driver API.
+     * 1. Tracks(rows and columns) are sanitized. Sanitization of tracks consists of going through the child nodes to get an overall estimate
+     *    regarding the number of tracks that are required.
+     * 2. Items(child nodes) are sanitized. Any item without any proper gridStart and gridEnd values gets sanitized here.
+     * 3. Track solving algrithm is run for both columns and rows to calculate the size each track will get.
+     * 4. Once tracks are resolved and all tracks have their size, all the grid items are assigned their width, height, x and y(when applicable)
+     *
+     * @param {Object} _domTree
+     *        Full node tree consisting of grid container and grid items.
+     * @memberof Grid
+     */
+
   }, {
     key: "compute",
     value: function compute(_domTree) {
@@ -308,6 +461,19 @@ function () {
 
       this._sanitizeTracks(domTree)._sanitizeItems(domTree)._inflateTracks()._assignCoordinatesToCells(domTree);
     }
+    /**
+     * Rows and columns are refered as tracks in css-grid terminology.
+     * Track sanitization is required to account for any changes in the number of tracks by considering the grid items.
+     * Items are iterated to check if all the times can be accomodated within the user-defined grid cells. If not, tracks will
+     * be increased.
+     *
+     * @param   {Object} [_domTree={}]
+     *          Full node tree consisting of grid container and grid items.
+     * @returns {Grid}
+     *          Reference of the class instance.
+     * @memberof Grid
+     */
+
   }, {
     key: "_sanitizeTracks",
     value: function _sanitizeTracks() {
@@ -316,15 +482,20 @@ function () {
       var style = _domTree.style,
           gridTemplateRows = style.gridTemplateRows,
           gridTemplateColumns = style.gridTemplateColumns,
-          repeatResolvedTracks,
           config = this._config,
-          trackInfo;
+          trackInfo,
+          _getMaxRowColumn = getMaxRowColumn(_domTree.children),
+          maxColumn = _getMaxRowColumn.maxColumn,
+          maxRow = _getMaxRowColumn.maxRow;
+
+      this.set('maxTracks', maxRow);
       trackInfo = this._fetchTrackInformation(gridTemplateRows);
       config.mapping.row = {
         nameToLineMap: trackInfo.nameToLineMap,
         lineToNameMap: trackInfo.lineToNameMap
       };
       config.rowTracks = trackInfo.tracks;
+      this.set('maxTracks', maxColumn);
       trackInfo = this._fetchTrackInformation(gridTemplateColumns);
       config.mapping.col = {
         nameToLineMap: trackInfo.nameToLineMap,
@@ -333,10 +504,23 @@ function () {
       config.colTracks = trackInfo.tracks;
       return this;
     }
+    /**
+     * Any track is bounded by two lines, which are called grid lines. A grid line can have multiple names.
+     * To make calculations more easier, a map is maintained between line names and line numbers.
+     *
+     * @param   {string} [tracks='none']
+     *          gridTemplateRows or gridTemplateColumns(user provided values)
+     * @returns {Object}
+     *          tracks: Array of tracks where track has it's start, end and size(provided by user) specified
+     *          nameToLineMap: Object where key is the name and the value is the line number
+     *          lineToNameMap: Object where key is the number and the value is the name
+     * @memberof Grid
+     */
+
   }, {
     key: "_fetchTrackInformation",
     value: function _fetchTrackInformation() {
-      var tracks = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'auto';
+      var tracks = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'none';
       var i,
           len,
           splittedTrackInfo = tracks.split(templateSplitRegex),
@@ -372,8 +556,13 @@ function () {
       }).map(function (size) {
         return getCleanSize(size);
       });
+      len = sizeList.length;
 
-      for (i = 0, len = sizeList.length; i < len; i++) {
+      if (tracks === 'none') {
+        len = this.getProps('maxTracks');
+      }
+
+      for (i = 0; i < len; i++) {
         startLineNames = nameList[i] && nameList[i].replace(/\[|\]/g, '').split(' ').filter(function (name) {
           return name.length;
         }).map(function (name) {
@@ -387,7 +576,7 @@ function () {
         sanitizedTracks.push({
           start: i + 1,
           end: i + 2,
-          size: sizeList[i]
+          size: sizeList[i] || 'auto'
         }); // A line can have multiple names but a name can only be assigned to a single line
 
         lineToNameMap[i + 1] = startLineNames;
@@ -408,6 +597,18 @@ function () {
         lineToNameMap: lineToNameMap
       };
     }
+    /**
+     * Sanitization of grid items. The gridRowStart and gridColumnStart values are replaced by the line numbers. Also,
+     * if any item do not have any gridRowStart and/or gridColumnEnd values mentioned, they are placed accordingly in
+     * empty cells in rowwise or columnwise manner, based on the value of gridAutoFlow.
+     *
+     * @param   {Object} _domTree
+     *          Full node tree consisting of grid container and grid items.
+     * @returns {Grid}
+     *          Reference of the class instance.
+     * @memberof Grid
+     */
+
   }, {
     key: "_sanitizeItems",
     value: function _sanitizeItems(_domTree) {
@@ -451,8 +652,8 @@ function () {
         });
       }
 
-      autoFlowItems = sanitizedItems.filter(function (item) {
-        return !item.colStart || !item.rowStart;
+      autoFlowItems = sanitizedItems.filter(function (sanitizedItem) {
+        return !sanitizedItem.colStart || !sanitizedItem.rowStart;
       });
       /**
        * @todo: Scope to improve code here.
@@ -520,11 +721,19 @@ function () {
       this._config.sanitizedItems = sanitizedItems;
       return this;
     }
-  }, {
-    key: "_expandTracksIfRequired",
-    value: function _expandTracksIfRequired() {
-      return this;
-    }
+    /**
+     * Track solving algorithm is used to calculate the size of each track. First the column tracks are resolved, then the
+     * row tracks. For track solving algorithm to run, it is important to resolve all the nested grids. Solving the nested
+     * grids allows to consider their min-content contribution while solving tracks of parent grid.
+     *
+     * An exception arises if a nested grid has repeat in either of the gridTemplateColumns or gridTemplateRows property.
+     * In that case, the nested grid is solved once the column tracks of the parent grid is solved.
+     *
+     * @returns {Grid}
+     *          Reference of the class instance.
+     * @memberof Grid
+     */
+
   }, {
     key: "_inflateTracks",
     value: function _inflateTracks() {
@@ -570,6 +779,17 @@ function () {
       domTree.style.minWidthContribution = minWidthContribution;
       return this;
     }
+    /**
+     * The grid items which are also grid containers(nested grids) and has repeat() configuration in either of
+     * gridTenplateColumns or gridTemplateRows attribute are solved after the column tracks of the parents are solved.
+     *
+     * @param   {Object} _domTree
+     *          Full node tree consisting of grid container and grid items.
+     * @returns {Grid}
+     *          Reference of the class instance.
+     * @memberof Grid
+     */
+
   }, {
     key: "_solveUnresolvedChildren",
     value: function _solveUnresolvedChildren(_domTree) {
@@ -614,7 +834,16 @@ function () {
         child.style.gridTemplateRows = resolvedTracks.gridTemplateRows;
         parentReference.gridLayoutEngine(child); // }
       });
+      return this;
     }
+    /**
+     * After the grid is resolved, the items and the container should receive their dimensions(width, height) and positions(x, y).
+     * This values are calculated after considering the justifyItem and alignItem attributes.
+     *
+     * @param {Object} _domTree
+     * @memberof Grid
+     */
+
   }, {
     key: "_assignCoordinatesToCells",
     value: function _assignCoordinatesToCells(_domTree) {
@@ -630,9 +859,7 @@ function () {
           justifyItems = _domTree$style.justifyItems,
           alignItems = _domTree$style.alignItems,
           paddingStart = _domTree$style.paddingStart,
-          paddingEnd = _domTree$style.paddingEnd,
           paddingTop = _domTree$style.paddingTop,
-          paddingBottom = _domTree$style.paddingBottom,
           trackWidth,
           trackHeight,
           width,
@@ -710,6 +937,7 @@ function () {
           height: height
         };
       });
+      return this;
     }
   }]);
 
@@ -865,7 +1093,6 @@ function computeGridLayout(domTree) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils */ "./src/utils/index.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -878,12 +1105,14 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-
-
 var getMultiplierOfFr = function getMultiplierOfFr(size) {
   return +size.replace(/fr/, '');
 },
-    _frSpaceDistributorHelper = function _frSpaceDistributorHelper(tracks, totalSpaceUsed, containerSize) {
+
+/**
+ * Helper function to distribute extra space among all the flexible tracks.
+ */
+_frSpaceDistributorHelper = function _frSpaceDistributorHelper(tracks, totalSpaceUsed, containerSize) {
   var freeSpace,
       spacePerFrTrack,
       eligibleTracks,
@@ -915,7 +1144,11 @@ var getMultiplierOfFr = function getMultiplierOfFr(size) {
     });
   }
 },
-    _intrinsicSpaceDistributorHelper = function _intrinsicSpaceDistributorHelper(tracks, totalSpaceUsed, containerSize) {
+
+/**
+ * Helper function to distribute extra space among all the intrinsic tracks.
+ */
+_intrinsicSpaceDistributorHelper = function _intrinsicSpaceDistributorHelper(tracks, totalSpaceUsed, containerSize) {
   var freeSpace,
       spacePerIntrinsicTrack,
       i,
@@ -967,6 +1200,13 @@ var getMultiplierOfFr = function getMultiplierOfFr(size) {
     return track.baseSize += spacePerIntrinsicTrack;
   });
 };
+/**
+ * TrackResolver implements the standard track solving algorithm of CSS grid.
+ * Refer https://www.w3.org/TR/css-grid-1/#algo-track-sizing
+ *
+ * @class TrackResolver
+ */
+
 
 var TrackResolver =
 /*#__PURE__*/
@@ -984,6 +1224,18 @@ function () {
     this.set('containerSize', containerSize);
     return this;
   }
+  /**
+   * setter method to set props
+   *
+   * @param   {string} key
+   *          key represents the name by which the value is to be stored in props object.
+   * @param   {any} info
+   *          info is the information(can be anything) that has to be stored against the key.
+   * @returns {TrackResolver}
+   *          Reference of the class instance.
+   * @memberof TrackResolver
+   */
+
 
   _createClass(TrackResolver, [{
     key: "set",
@@ -1007,11 +1259,47 @@ function () {
 
       return this;
     }
+    /**
+     * Getter method to fetch the props
+     *
+     * @param   {string} key
+     *          key of the value which has to be fetched.
+     * @returns {any}
+     *          alue corresponding to the key in props object
+     * @memberof TrackResolver
+     */
+
   }, {
     key: "get",
     value: function get(key) {
       return this.props[key];
     }
+    /**
+     * Initializes the tracks. Both rows and columns in grid are tracks in TrackResolver.
+     * Each track is assigned a baseSize and growthLimit. BaseSize is the minimum size that a track can take,
+     * while growthLimit is the max size.
+     *
+     * Terminology:
+     * FrTracks: Tracks which have a size definition in terms of fr(free space)
+     * Intrinsic Tracks: Tracks which have a size definition of auto.
+     *
+     * @param   {Array} _tracks
+     *          Array containing information about the tracks.
+     * @returns {Array}
+     *          Array of sanitized tracks. A sanitized track consists of the following information
+     *          {
+     *              type: minmax | fixed | flex | intrinsic
+     *                    minmax: track has size definition in minmax format
+     *                    fixed: a fixed numeric value is provided as size definition
+     *                    flex: size definition is provided in terms of fr
+     *                    intrinsic: auto size definition
+     *              multiplier: Prefix of fr(2 in case of 2fr). default 1.
+     *              baseSize: lower size limit of track.
+     *              growthLimit: upper size limit of track.
+     *          }
+     * @memberof TrackResolver
+     */
+
   }, {
     key: "_initTrackSize",
     value: function _initTrackSize(_tracks) {
@@ -1075,6 +1363,17 @@ function () {
 
       return config.sanitizedTracks = trackAr;
     }
+    /**
+     * The size of grid items are sanitized in this method. In case the items do not have a valid size, they
+     * take up size of the tracks
+     *
+     * @param   {Array} _items
+     *          Array of grid items
+     * @returns {Array}
+     *          Array of items where each item has valid size
+     * @memberof TrackResolver
+     */
+
   }, {
     key: "_initItems",
     value: function _initItems(_items) {
@@ -1105,7 +1404,9 @@ function () {
 
         if (gap1 === gap2) {
           return a.start - b.start;
-        } else return gap1 - gap2;
+        } else {
+          return gap1 - gap2;
+        }
       });
 
       for (i = 0, nonSpanningItemStartIndex = len = sanitizedItems.length; i < len; i++) {
@@ -1118,6 +1419,16 @@ function () {
       this._config.nonSpanningItemStartIndex = nonSpanningItemStartIndex;
       return this._config.sanitizedItems = sanitizedItems;
     }
+    /**
+     * If any grid item do not have a valid size, then it takes up the size of the track.
+     *
+     * @param   {Object} item
+     *          The item which do not have a proper size and will take up the size of the track.
+     * @returns {number}
+     *          size of the track(s) which will be assigned to the grid item.
+     * @memberof TrackResolver
+     */
+
   }, {
     key: "_getParentSize",
     value: function _getParentSize(item) {
@@ -1132,6 +1443,23 @@ function () {
       });
       return widthOfParentTracks || 0;
     }
+    /**
+     * resolveTracks method is called to resolve the tracks.
+     *
+     * Terminology:
+     * Non-spanning items - items which is contained in a single track.
+     * Spanning items -  items which is spread across multiple tracks.
+     *
+     * 1. At first all the non-spanning items are placed. The tracks containing non-spanning gets a minimum size.
+     * 2. Then the spanning items are placed. If total size of all the tracks over which the spanning items are spread is less than
+     *  the size of the spanning items, then the extra space required by the item is accomodated equally by the non-fixed tracks.
+     * 3. Afer all the items are placed, if any free space remains, they get distributed among the non-fixed tracks.
+     *
+     * @returns {Array}
+     *          Array of objects where each object is a track with resolved size.
+     * @memberof TrackResolver
+     */
+
   }, {
     key: "resolveTracks",
     value: function resolveTracks() {
@@ -1139,6 +1467,15 @@ function () {
 
       return this._config.sanitizedTracks;
     }
+    /**
+     * Placing a non-spanning item. After placing the item if the containing track has a non-fixed size, it is increased to
+     * accomodate the item.
+     *
+     * @returns {TrackResolver}
+     *          Reference of the class instance.
+     * @memberof TrackResolver
+     */
+
   }, {
     key: "_placeNonSpanningItems",
     value: function _placeNonSpanningItems() {
@@ -1160,6 +1497,16 @@ function () {
       });
       return this;
     }
+    /**
+     * Place the non-spanning items. If the total size of all tracks on which the item is spread is less than
+     * the size of the item, then the extra size required is accomodated by equally increasing the size of
+     * all the non-fixed containing tracks.
+     *
+     * @returns {TrackResolver}
+     *          Reference of the class instance.
+     * @memberof TrackResolver
+     */
+
   }, {
     key: "_placeSpanningItems",
     value: function _placeSpanningItems() {
@@ -1209,6 +1556,20 @@ function () {
       });
       return this;
     }
+    /**
+     * After all the items are placed and if any free space remains, it is distributed among the tracks.
+     * Distribution strategy depends on the track configurations.
+     * If there are tracks with flexible size
+     * definition(fr), then all the free space is allocated to those tracks.
+     * If there are no tracks with flexible size definiton, then the free space is distributed
+     * evenly among the intrinsic tracks.
+     * If all the tracks are fixed(ie, have fixed size), then the free space is not distributed.
+     *
+     * @returns {TrackResolver}
+     *          Reference of the class instance.
+     * @memberof TrackResolver
+     */
+
   }, {
     key: "_distributeFreeSpace",
     value: function _distributeFreeSpace() {
@@ -1243,6 +1604,15 @@ function () {
 
       return this;
     }
+    /**
+     * clears the props and configuration of TrackResolver. This method is called before using
+     * TrackResolver with different set of input.
+     *
+     * @returns {TrackResolver}
+     *          Reference of the class instance.
+     * @memberof TrackResolver
+     */
+
   }, {
     key: "clear",
     value: function clear() {
@@ -1272,75 +1642,9 @@ function () {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _mason__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./mason */ "./src/mason.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "computeLayout", function() { return _mason__WEBPACK_IMPORTED_MODULE_0__["computeLayout"]; });
+/* harmony import */ var _faber__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./faber */ "./src/faber.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "computeLayout", function() { return _faber__WEBPACK_IMPORTED_MODULE_0__["computeLayout"]; });
 
-
-
-
-/***/ }),
-
-/***/ "./src/mason.js":
-/*!**********************!*\
-  !*** ./src/mason.js ***!
-  \**********************/
-/*! exports provided: computeLayout */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "computeLayout", function() { return computeLayout; });
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils/index.js");
-/* harmony import */ var _utils_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/constants */ "./src/utils/constants.js");
-/* harmony import */ var _grid__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./grid */ "./src/grid/index.js");
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-
-
-
-
-var LayoutEngine =
-/*#__PURE__*/
-function () {
-  function LayoutEngine() {
-    _classCallCheck(this, LayoutEngine);
-
-    this.gridLayoutEngine = _grid__WEBPACK_IMPORTED_MODULE_2__["computeGridLayout"];
-  }
-
-  _createClass(LayoutEngine, [{
-    key: "compute",
-    value: function compute(domTree) {
-      switch (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["getDisplayProperty"])(domTree)) {
-        case _utils_constants__WEBPACK_IMPORTED_MODULE_1__["DISPLAY_GRID"]:
-          return this.gridLayoutEngine(domTree);
-
-        case _utils_constants__WEBPACK_IMPORTED_MODULE_1__["DISPLAY_FLEX"]:
-          return this.gridLayoutEngine(domTree);
-
-        default:
-          // Probably throw unsupported error?
-          return this.gridLayoutEngine(domTree);
-      }
-    }
-  }]);
-
-  return LayoutEngine;
-}();
-
-var computeLayout = function computeLayout(domTree) {
-  var mason = new LayoutEngine();
-  var clonedDomTree = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["cloneObject"])(domTree),
-      calculatedTree;
-  clonedDomTree.root = true;
-  calculatedTree = mason.compute(clonedDomTree);
-  Object(_utils__WEBPACK_IMPORTED_MODULE_0__["attachLayoutInformation"])(domTree, calculatedTree);
-  return domTree;
-};
 
 
 
@@ -1362,13 +1666,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "END", function() { return END; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "STRETCH", function() { return STRETCH; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ATOMIC_DATA_TYPE", function() { return ATOMIC_DATA_TYPE; });
-var DISPLAY_GRID = 'grid';
-var DISPLAY_FLEX = 'flex';
-var CENTER = 'center';
-var START = 'start';
-var END = 'end';
-var STRETCH = 'stretch';
-var ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'];
+var DISPLAY_GRID = 'grid',
+    DISPLAY_FLEX = 'flex',
+    CENTER = 'center',
+    START = 'start',
+    END = 'end',
+    STRETCH = 'stretch',
+    ATOMIC_DATA_TYPE = ['string', 'number', 'function', 'boolean', 'undefined'];
+
 
 /***/ }),
 
@@ -1389,6 +1694,7 @@ __webpack_require__.r(__webpack_exports__);
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 
+var UNDEF;
 
 var getDisplayProperty = function getDisplayProperty(domTree) {
   return domTree.style && domTree.style.display;
@@ -1453,4 +1759,4 @@ var getDisplayProperty = function getDisplayProperty(domTree) {
 
 /******/ });
 });
-//# sourceMappingURL=main.js.map
+//# sourceMappingURL=faber.js.map

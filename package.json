@@ -1,14 +1,15 @@
 {
-  "name": "mason",
+  "name": "faberjs",
   "version": "0.1.0",
-  "description": "",
+  "description": "Faberjs is an open-source platform-independent layouting engine capable of mimicking different CSS layouting paradigm",
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server --host=0.0.0.0 --port 9000 --hot --config webpack.config.js",
-    "build": "webpack --mode=production",
+    "minify": "rm -rf es/ && npx babel src -d es --minified --no-comments",
+    "build": "rm -rf dist/ && npx webpack --dev && npx webpack --prod",
     "watch": "webpack --watch --mode=development",
     "lint": "npx eslint src/",
-    "test": "jest"
+    "test": "ci/test"
   },
   "pre-commit": {
     "run": [
@@ -16,9 +17,24 @@
       "test"
     ]
   },
+  "keywords": [
+    "faber",
+    "faberjs",
+    "css",
+    "css-grid",
+    "grid",
+    "layout",
+    "layout-engine",
+    "css-in-svg",
+    "css-in-canvas",
+    "grid-in-svg",
+    "grid-in-canvas",
+    "layout-in-svg",
+    "layout-in-canvas"
+  ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fusioncharts/mason.git"
+    "url": "git+https://github.com/fusioncharts/faberjs.git"
   },
   "author": "FusionCharts",
   "contributors": [
@@ -33,9 +49,9 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/fusioncharts/mason/issues"
+    "url": "https://github.com/fusioncharts/faberjs/issues"
   },
-  "homepage": "https://github.com/fusioncharts/mason#readme",
+  "homepage": "https://github.com/fusioncharts/faberjs#readme",
   "devDependencies": {
     "@babel/cli": "^7.5.5",
     "@babel/core": "^7.5.5",

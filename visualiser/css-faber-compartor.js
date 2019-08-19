@@ -1,15 +1,69 @@
-
 const chart = {
+  style: {
+    display: 'grid',
+    width: 400,
+    height: 400,
+    justifyItems: 'center',
+    //gridTemplateRows: '[one] 100 [two] 100 [three]',
+    //gridTemplateColumns: '[one] 100 [two] 100 [three]',
+    templateRowsHTML: ['none'],
+    templateColumnsHTML: ['none']
+  },
+  children: [
+    {
+      style: {
+        width: 100,
+        height: '100',
+        gridRowStart: '1',
+        gridRowEnd: '2',
+        gridColumnStart: '1',
+        gridColumnEnd: '2'
+      }
+    },
+    {
+      style: {
+        width: 100,
+        height: '100',
+        gridRowStart: '1',
+        gridRowEnd: '2',
+        gridColumnStart: '2',
+        gridColumnEnd: '3'
+      }
+    },
+    {
+      style: {
+        width: 100,
+        height: '100',
+        gridRowStart: '2',
+        gridRowEnd: '3',
+        gridColumnStart: '1',
+        gridColumnEnd: '2'
+      }
+    },
+    {
+      style: {
+        width: 100,
+        height: '100',
+        gridRowStart: '2',
+        gridRowEnd: '3',
+        gridColumnStart: '2',
+        gridColumnEnd: '3'
+      }
+    }
+  ]
+};
+
+const chart2 = {
   style: {
     display: 'grid',
     width: 700,
     height: 400,
     justifyItems: 'center',
     // gridTemplateRows: ['50', '1fr', '100'],
-    gridTemplateRows: '[one] auto [two] auto [three]',
+    //gridTemplateRows: '[one] auto [two] auto [three]',
     templateRowsHTML: ['50px', '1fr', '100px'],
     // gridTemplateColumns: ['50', '1fr', '100'],
-    gridTemplateColumns: '[one] auto [two] auto [three] auto [four]',
+    //gridTemplateColumns: '[one] auto [two] auto [three] auto [four]',
     templateColumnsHTML: ['50px', '1fr', '100px']
   },
   children: [
@@ -133,12 +187,11 @@ const chart = {
   ],
 };
 
-// Mason.computeLayout(chart);
-console.log(Mason.computeLayout(chart));
+console.log(faber.computeLayout(chart));
 
 function getHTMLCSSInlined () {
   const htmlContainerEl = document.getElementsByClassName('html')[0];
-  const masonContainerEl = document.getElementsByClassName('mason')[0];
+  const faberContainerEl = document.getElementsByClassName('faber')[0];
   htmlContainerEl.style.display = 'grid';
   htmlContainerEl.style.gridTemplateColumns = chart.style.templateColumnsHTML.join(" ");
   htmlContainerEl.style.gridTemplateRows = chart.style.templateRowsHTML.join(" ");
@@ -147,9 +200,9 @@ function getHTMLCSSInlined () {
   htmlContainerEl.style.width = chart.style.width;
   htmlContainerEl.style.height = chart.style.height;
 
-  masonContainerEl.style.width = chart.style.width;
-  masonContainerEl.style.height = chart.style.height;
-  masonContainerEl.style.position = 'relative';
+  faberContainerEl.style.width = chart.style.width;
+  faberContainerEl.style.height = chart.style.height;
+  faberContainerEl.style.position = 'relative';
 
   chart.children.forEach(child => {
     const childEl = document.createElement('div');
@@ -157,9 +210,9 @@ function getHTMLCSSInlined () {
     childEl.style.width = child.style.width;
     childEl.style.height = child.style.height;
     childEl.style.position = 'absolute';
-    childEl.style.left = child.startX;
-    childEl.style.top = child.startY;
-    masonContainerEl.appendChild(childEl);
+    childEl.style.left = child.layout.x;
+    childEl.style.top = child.layout.y;
+    faberContainerEl.appendChild(childEl);
   });
 
   chart.children.forEach(child => {
@@ -167,6 +220,10 @@ function getHTMLCSSInlined () {
     childEl.classList.add('bordered');
     childEl.style.width = child.style.width;
     childEl.style.height = child.style.height;
+    childEl.style.gridColumnStart = child.style.gridColumnStart;
+    childEl.style.gridColumnEnd = child.style.gridColumnEnd;
+    childEl.style.gridRowStart = child.style.gridRowStart;
+    childEl.style.gridRowEnd = child.style.gridRowEnd;
     htmlContainerEl.appendChild(childEl);
   });
 }

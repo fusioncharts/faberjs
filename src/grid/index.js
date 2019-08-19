@@ -1,9 +1,9 @@
-import { getDisplayProperty, pluckNumber } from "../utils";
-import TrackResolver from "./track-sizing";
-import { CENTER, END, STRETCH } from "../utils/constants";
-import { repeatResolver } from "./helpers/repeatResolver";
+import { getDisplayProperty, pluckNumber } from '../utils';
+import TrackResolver from './track-sizing';
+import { CENTER, END, STRETCH } from '../utils/constants';
+import { repeatResolver } from './helpers/repeatResolver';
 
-const validSizes = ['auto'],
+const validSizes = ['auto', 'none'],
   minmaxRegex = /minmax/,
   // repeatFunctionRegex = /repeat\(/g,
   // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
@@ -55,7 +55,7 @@ const validSizes = ['auto'],
         start: item[trackDir + 'Start'],
         end: item[trackDir + 'End'],
         size
-      }
+      };
     });
     return filteredItems;
   },
@@ -68,12 +68,34 @@ const validSizes = ['auto'],
         grid[i][j] = true;
       }
     }
+  },
+  getMaxRowColumn = items => {
+    let maxRow = 1, maxColumn = 1;
+    items.forEach((item) => {
+      maxColumn = Math.max(isNaN(item.style.gridColumnStart) ? 0 : item.style.gridColumnStart, maxColumn, isNaN(item.style.gridColumnEnd * 1 - 1) ? 0 : item.style.gridColumnEnd * 1 - 1);
+      maxRow = Math.max(isNaN(item.style.gridRowStart) ? 0 : item.style.gridRowStart, maxRow, isNaN(item.style.gridRowEnd * 1 - 1) ? 0 : item.style.gridRowEnd * 1 - 1);
+    });
+    return {
+      maxRow,
+      maxColumn
+    };
   };
 class Grid {
+  /**
+   * Creates an instance of Grid. Initializes the props and _config object.
+   * @memberof Grid
+   */
   constructor () {
     this.setup();
   }
 
+  /**
+   * Initializes _config, props objects. Also initializes and stores a new instance of TrackResolver.
+   *
+   * @returns {Grid}
+   *          Reference of the class instance.
+   * @memberof Grid
+   */
   setup () {
     this._tsa = new TrackResolver();
     this.props = {};
@@ -84,20 +106,61 @@ class Grid {
     return this;
   }
 
+  /**
+   * Setter method to set props.
+   *
+   * @param   {string} key
+   *          key represents the name by which the value is to be stored in props object.
+   * @param   {any} value
+   *          value is the information(can be anything) that has to be stored against the key.
+   * @returns {Grid}
+   *          Reference of the class instance.
+   * @memberof Grid
+   */
   set (key, value) {
     this.props[key] = value;
 
     return this;
   }
 
+  /**
+   * Getter method to fetch props.
+   *
+   * @param   {string} key
+   *          key of the value which has to be fetched.
+   * @returns {any}
+   *          value corresponding to the key in props object
+   * @memberof Grid
+   */
   getProps (key) {
     return this.props[key];
   }
 
+  /**
+   * Getter method to fetch config.
+   *
+   * @param   {string} key
+   *          key of the value which has to be fetched.
+   * @returns {any}
+   *          alue corresponding to the key in _config object
+   * @memberof Grid
+   */
   getConfig (key) {
     return this._config[key];
   }
 
+  /**
+   * compute method is called to calculate the layout. This is the driver API.
+   * 1. Tracks(rows and columns) are sanitized. Sanitization of tracks consists of going through the child nodes to get an overall estimate
+   *    regarding the number of tracks that are required.
+   * 2. Items(child nodes) are sanitized. Any item without any proper gridStart and gridEnd values gets sanitized here.
+   * 3. Track solving algrithm is run for both columns and rows to calculate the size each track will get.
+   * 4. Once tracks are resolved and all tracks have their size, all the grid items are assigned their width, height, x and y(when applicable)
+   *
+   * @param {Object} _domTree
+   *        Full node tree consisting of grid container and grid items.
+   * @memberof Grid
+   */
   compute (_domTree) {
     let domTree = _domTree || this.props.domTree;
 
@@ -107,12 +170,26 @@ class Grid {
       ._assignCoordinatesToCells(domTree);
   }
 
+  /**
+   * Rows and columns are refered as tracks in css-grid terminology.
+   * Track sanitization is required to account for any changes in the number of tracks by considering the grid items.
+   * Items are iterated to check if all the times can be accomodated within the user-defined grid cells. If not, tracks will
+   * be increased.
+   *
+   * @param   {Object} [_domTree={}]
+   *          Full node tree consisting of grid container and grid items.
+   * @returns {Grid}
+   *          Reference of the class instance.
+   * @memberof Grid
+   */
   _sanitizeTracks (_domTree = {}) {
     let style = _domTree.style,
       { gridTemplateRows, gridTemplateColumns } = style,
-      repeatResolvedTracks,
       config = this._config,
-      trackInfo;
+      trackInfo,
+      { maxColumn, maxRow } = getMaxRowColumn(_domTree.children);
+
+    this.set('maxTracks', maxRow);
 
     trackInfo = this._fetchTrackInformation(gridTemplateRows);
     config.mapping.row = {
@@ -121,6 +198,7 @@ class Grid {
     };
     config.rowTracks = trackInfo.tracks;
 
+    this.set('maxTracks', maxColumn);
     trackInfo = this._fetchTrackInformation(gridTemplateColumns);
     config.mapping.col = {
       nameToLineMap: trackInfo.nameToLineMap,
@@ -131,7 +209,19 @@ class Grid {
     return this;
   }
 
-  _fetchTrackInformation (tracks = 'auto') {
+  /**
+   * Any track is bounded by two lines, which are called grid lines. A grid line can have multiple names.
+   * To make calculations more easier, a map is maintained between line names and line numbers.
+   *
+   * @param   {string} [tracks='none']
+   *          gridTemplateRows or gridTemplateColumns(user provided values)
+   * @returns {Object}
+   *          tracks: Array of tracks where track has it's start, end and size(provided by user) specified
+   *          nameToLineMap: Object where key is the name and the value is the line number
+   *          lineToNameMap: Object where key is the number and the value is the name
+   * @memberof Grid
+   */
+  _fetchTrackInformation (tracks = 'none') {
     let i,
       len,
       splittedTrackInfo = tracks.split(templateSplitRegex),
@@ -164,21 +254,26 @@ class Grid {
       return false;
     }).map(size => getCleanSize(size));
 
-    for (i = 0, len = sizeList.length; i < len; i++) {
+    len = sizeList.length;
+    if (tracks === 'none') {
+      len = this.getProps('maxTracks');
+    }
+
+    for (i = 0; i < len; i++) {
       startLineNames = (nameList[i] && nameList[i].replace(/\[|\]/g, '').split(' ').filter(name => name.length).map(name => name.trim())) || [i + 1 + ''];
       endLineNames = (nameList[i + 1] && nameList[i + 1].replace(/\[|\]/g, '').split(' ').filter(name => name.length).map(name => name.trim())) || [i + 2 + ''];
 
       sanitizedTracks.push({
         start: i + 1,
         end: i + 2,
-        size: sizeList[i],
+        size: sizeList[i] || 'auto'
       });
 
       // A line can have multiple names but a name can only be assigned to a single line
       lineToNameMap[i + 1] = startLineNames;
       lineToNameMap[i + 2] = endLineNames;
-      startLineNames.forEach(name => nameToLineMap[name] = i + 1);
-      endLineNames.forEach(name => nameToLineMap[name] = i + 2);
+      startLineNames.forEach(name => (nameToLineMap[name] = i + 1));
+      endLineNames.forEach(name => (nameToLineMap[name] = i + 2));
       nameToLineMap[i + 1] = i + 1;
       nameToLineMap[i + 2] = i + 2;
     }
@@ -190,6 +285,17 @@ class Grid {
     };
   }
 
+  /**
+   * Sanitization of grid items. The gridRowStart and gridColumnStart values are replaced by the line numbers. Also,
+   * if any item do not have any gridRowStart and/or gridColumnEnd values mentioned, they are placed accordingly in
+   * empty cells in rowwise or columnwise manner, based on the value of gridAutoFlow.
+   *
+   * @param   {Object} _domTree
+   *          Full node tree consisting of grid container and grid items.
+   * @returns {Grid}
+   *          Reference of the class instance.
+   * @memberof Grid
+   */
   _sanitizeItems (_domTree) {
     let domTree = (_domTree || this.props.domTree),
       items = domTree.children || [],
@@ -226,7 +332,7 @@ class Grid {
       updateMatrix(gridMatrix, {x: item.colStart, y: item.rowStart}, {x: item.colEnd, y: item.rowEnd});
     }
 
-    autoFlowItems = sanitizedItems.filter(item => (!item.colStart || !item.rowStart));
+    autoFlowItems = sanitizedItems.filter(sanitizedItem => (!sanitizedItem.colStart || !sanitizedItem.rowStart));
 
     /**
      * @todo: Scope to improve code here.
@@ -261,7 +367,7 @@ class Grid {
             gridMatrix.push([]);
           }
           domTree.style.gridTemplateRows = domTree.style.gridTemplateRows.trim();
-  
+
           freeCells = [];
           for (i = 1; i <= rowNum; i++) {
             for (j = 1; j <= colNum; j++) {
@@ -287,10 +393,18 @@ class Grid {
     return this;
   }
 
-  _expandTracksIfRequired () {
-    return this;
-  }
-
+  /**
+   * Track solving algorithm is used to calculate the size of each track. First the column tracks are resolved, then the
+   * row tracks. For track solving algorithm to run, it is important to resolve all the nested grids. Solving the nested
+   * grids allows to consider their min-content contribution while solving tracks of parent grid.
+   *
+   * An exception arises if a nested grid has repeat in either of the gridTemplateColumns or gridTemplateRows property.
+   * In that case, the nested grid is solved once the column tracks of the parent grid is solved.
+   *
+   * @returns {Grid}
+   *          Reference of the class instance.
+   * @memberof Grid
+   */
   _inflateTracks () {
     let { sanitizedItems, colTracks, rowTracks } = this._config,
       sizedTracks,
@@ -335,6 +449,16 @@ class Grid {
     return this;
   }
 
+  /**
+   * The grid items which are also grid containers(nested grids) and has repeat() configuration in either of
+   * gridTenplateColumns or gridTemplateRows attribute are solved after the column tracks of the parents are solved.
+   *
+   * @param   {Object} _domTree
+   *          Full node tree consisting of grid container and grid items.
+   * @returns {Grid}
+   *          Reference of the class instance.
+   * @memberof Grid
+   */
   _solveUnresolvedChildren (_domTree) {
     let domTree = _domTree || this.props.domTree,
       childrenWithRepeatConfiguration = (domTree.unResolvedChildren || []).filter(child => /repeat\(/g.test(child.style.gridTemplateColumns)
@@ -364,8 +488,8 @@ class Grid {
       parsedWidthOfItem = parseRepeatFunction(child.style.gridTemplateColumns)[1];
       colStart = mapping.col.nameToLineMap[child.style.gridColumnStart];
       colEnd = mapping.col.nameToLineMap[child.style.gridColumnEnd];
-      
-      trackWidth = colTrackDp[colEnd - 1 ] - colTrackDp[colStart - 1];
+
+      trackWidth = colTrackDp[colEnd - 1] - colTrackDp[colStart - 1];
       parentInfo = {
         itemWidth: parsedWidthOfItem,
         width: trackWidth
@@ -379,15 +503,24 @@ class Grid {
       parentReference.gridLayoutEngine(child);
       // }
     });
+
+    return this;
   }
 
+  /**
+   * After the grid is resolved, the items and the container should receive their dimensions(width, height) and positions(x, y).
+   * This values are calculated after considering the justifyItem and alignItem attributes.
+   *
+   * @param {Object} _domTree
+   * @memberof Grid
+   */
   _assignCoordinatesToCells (_domTree) {
     let domTree = _domTree || this.props.domTree,
       { sanitizedItems, rowTracks, colTracks } = this._config,
       item,
       len,
       i,
-      { justifyItems, alignItems, paddingStart, paddingEnd, paddingTop, paddingBottom } = domTree.style,
+      { justifyItems, alignItems, paddingStart, paddingTop } = domTree.style,
       trackWidth,
       trackHeight,
       width,
@@ -414,7 +547,7 @@ class Grid {
       item = sanitizedItems[index];
       trackWidth = colTrackdp[item.colEnd - 1] - colTrackdp[item.colStart - 1];
       trackHeight = rowTrackdp[item.rowEnd - 1] - rowTrackdp[item.rowStart - 1];
-      
+
       width = isNaN(+child.style.width) ? trackWidth : +child.style.width;
       height = isNaN(+child.style.height) ? trackHeight : +child.style.height;
 
@@ -454,6 +587,8 @@ class Grid {
         height
       };
     });
+
+    return this;
   }
 }
 
@@ -474,7 +609,7 @@ const replaceWithAbsValue = (styleTrack = '', calculatedTrack) => {
     } else {
       calculatedTrack.forEach(track => {
         if (isNaN(track.calculatedStyle.baseSize)) return;
-        
+
         trackWithAbsValue += (track.calculatedStyle.baseSize + ' ');
       });
     }
@@ -524,7 +659,7 @@ const replaceWithAbsValue = (styleTrack = '', calculatedTrack) => {
 
           rowStart = mapping.row.nameToLineMap[rowStart];
           rowEnd = mapping.row.nameToLineMap[rowEnd];
-          
+
           for (j = rowStart, rowTrackSum = 0; j < rowEnd; j++) {
             rowTrackSum += rowTracks[j].calculatedStyle.baseSize;
           }
