@@ -4,10 +4,11 @@ const chart = {
     width: 400,
     height: 400,
     justifyItems: 'center',
-    //gridTemplateRows: '[one] 100 [two] 100 [three]',
-    //gridTemplateColumns: '[one] 100 [two] 100 [three]',
-    templateRowsHTML: ['none'],
-    templateColumnsHTML: ['none']
+    alignItems: 'center',
+    gridTemplateRows: '[one] 200px [two] 200px [three three-dash]',
+    gridTemplateColumns: '[one] 200px [two] 200px [three three-dash]',
+    templateRowsHTML: ['[one]', '200px', '[two]', '200px', '[three three-dash]'],
+    templateColumnsHTML: ['[one]', '200px', '[two]', '200px', '[three three-dash]']
   },
   children: [
     {
@@ -15,9 +16,9 @@ const chart = {
         width: 100,
         height: '100',
         gridRowStart: '1',
-        gridRowEnd: '2',
+        gridRowEnd: 'three',
         gridColumnStart: '1',
-        gridColumnEnd: '2'
+        gridColumnEnd: 'three-dash'
       }
     },
     {

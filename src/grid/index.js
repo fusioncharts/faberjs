@@ -8,6 +8,7 @@ const validSizes = ['auto', 'none'],
   // repeatFunctionRegex = /repeat\(/g,
   // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
   templateSplitRegex = ' ',
+  trackLineRegex  = /(?:[^\s[]+|\[[^[\]]*\])+/g,
   getUCFirstString = str => (str.charAt(0).toUpperCase() + str.slice(1)),
   validNestedGrid = tree => {
     let { gridTemplateColumns, gridTemplateRows } = tree.style || {};
@@ -72,8 +73,8 @@ const validSizes = ['auto', 'none'],
   getMaxRowColumn = items => {
     let maxRow = 1, maxColumn = 1;
     items.forEach((item) => {
-      maxColumn = Math.max(isNaN(item.style.gridColumnStart) ? 0 : item.style.gridColumnStart, maxColumn, isNaN(item.style.gridColumnEnd * 1 - 1) ? 0 : item.style.gridColumnEnd * 1 - 1);
-      maxRow = Math.max(isNaN(item.style.gridRowStart) ? 0 : item.style.gridRowStart, maxRow, isNaN(item.style.gridRowEnd * 1 - 1) ? 0 : item.style.gridRowEnd * 1 - 1);
+      maxColumn = Math.max(isNaN(+item.style.gridColumnStart) ? 0 : +item.style.gridColumnStart, maxColumn, isNaN(+item.style.gridColumnEnd - 1) ? 0 : +item.style.gridColumnEnd - 1);
+      maxRow = Math.max(isNaN(+item.style.gridRowStart) ? 0 : +item.style.gridRowStart, maxRow, isNaN(+item.style.gridRowEnd - 1) ? 0 : +item.style.gridRowEnd - 1);
     });
     return {
       maxRow,
@@ -224,7 +225,7 @@ class Grid {
   _fetchTrackInformation (tracks = 'none') {
     let i,
       len,
-      splittedTrackInfo = tracks.split(templateSplitRegex),
+      splittedTrackInfo = tracks.match(trackLineRegex),
       nameList,
       sizeList,
       sanitizedTracks = [{}],
@@ -232,6 +233,7 @@ class Grid {
       endLineNames,
       nameToLineMap = {},
       lineToNameMap = {};
+
 
     nameList = splittedTrackInfo.filter(track => {
       if (track && typeof track === 'string' && track.length) {

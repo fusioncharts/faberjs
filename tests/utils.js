@@ -153,6 +153,62 @@ const testTwoCrossTwoNodesFillParent = {
   ]
 };
 
+const testMultiNameTrackLines = {
+  style: {
+    display: 'grid',
+    width: 400,
+    height: 400,
+    justifyItems: 'center',
+    alignItems: 'center',
+    gridTemplateRows: '[one] 200px [two] 200px [three three-dash]',
+    gridTemplateColumns: '[one] 200px [two] 200px [three three-dash]',
+    templateRowsHTML: ['[one]', '200px', '[two]', '200px', '[three]'],
+    templateColumnsHTML: ['[one]', '200px', '[two]', '200px', '[three three-dash]']
+  },
+  children: [
+    {
+      style: {
+        width: 100,
+        height: '100',
+        gridRowStart: '1',
+        gridRowEnd: 'three',
+        gridColumnStart: '1',
+        gridColumnEnd: 'three-dash'
+      }
+    },
+    {
+      style: {
+        width: 100,
+        height: '100',
+        gridRowStart: '1',
+        gridRowEnd: '2',
+        gridColumnStart: '2',
+        gridColumnEnd: '3'
+      }
+    },
+    {
+      style: {
+        width: 100,
+        height: '100',
+        gridRowStart: '2',
+        gridRowEnd: '3',
+        gridColumnStart: '1',
+        gridColumnEnd: '2'
+      }
+    },
+    {
+      style: {
+        width: 100,
+        height: '100',
+        gridRowStart: '2',
+        gridRowEnd: '3',
+        gridColumnStart: '2',
+        gridColumnEnd: '3'
+      }
+    }
+  ]
+};
+
 const isCloseTo = (arg1, arg2, maxBuffer = 0) => {
   if (Math.abs(arg1 - arg2) <= maxBuffer) {
     return true;
@@ -164,5 +220,6 @@ export {
   basicTwoCrossTwoNodeWithFourChildren,
   testUndeclearedTracklines,
   testTwoCrossTwoNodesFillParent,
+  testMultiNameTrackLines,
   isCloseTo
 };

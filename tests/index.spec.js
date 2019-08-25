@@ -1,5 +1,5 @@
 import { computeLayout } from "../src/faber";
-import { basicTwoCrossTwoNodeWithFourChildren, testUndeclearedTracklines, testTwoCrossTwoNodesFillParent, isCloseTo } from "./utils";
+import { basicTwoCrossTwoNodeWithFourChildren, testUndeclearedTracklines, testTwoCrossTwoNodesFillParent, testMultiNameTrackLines, isCloseTo } from "./utils";
 
 describe('Grid Sizing test', () => {
   it('Grid should return layout with x,x2,y,y2,width and height', () => {
@@ -107,8 +107,45 @@ describe('Grid Sizing test', () => {
       expect(c.layout.y2).toBe(expectedGrid[index].y2);
     });
   });
-});
 
+  it('Grid container containing track line identified with multiple track names', () => {
+    const result = computeLayout(testMultiNameTrackLines),
+    expectedGrid = [{
+      x: 150,
+      x2: 250,
+      y: 150,
+      y2: 250
+    },
+    {
+      x: 250,
+      x2: 350,
+      y: 50,
+      y2: 150
+    },
+    {
+      x: 50,
+      x2: 150,
+      y: 250,
+      y2: 350
+    },
+    {
+      x: 250,
+      x2: 350,
+      y: 250,
+      y2: 350
+    }];
+
+    result.children.forEach((c, index) => {
+      expect(c.layout.height).toBe(100);
+      expect(c.layout.width).toBe(100);
+
+      expect(c.layout.x).toBe(expectedGrid[index].x);
+      expect(c.layout.x2).toBe(expectedGrid[index].x2);
+      expect(c.layout.y).toBe(expectedGrid[index].y);
+      expect(c.layout.y2).toBe(expectedGrid[index].y2);
+    });
+  });
+});
 
 describe('Grid with non-spanning items test', () => {
   it('Space should be distributed equally among all auto tracks when none of the items provided any dimension', () => {

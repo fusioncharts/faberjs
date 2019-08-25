@@ -286,6 +286,7 @@ var validSizes = ['auto', 'none'],
     // repeatFunctionRegex = /repeat\(/g,
 // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
 templateSplitRegex = ' ',
+    trackLineRegex = /(?:[^\s[]+|\[[^[\]]*\])+/g,
     getUCFirstString = function getUCFirstString(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 },
@@ -353,8 +354,8 @@ templateSplitRegex = ' ',
   var maxRow = 1,
       maxColumn = 1;
   items.forEach(function (item) {
-    maxColumn = Math.max(isNaN(item.style.gridColumnStart) ? 0 : item.style.gridColumnStart, maxColumn, isNaN(item.style.gridColumnEnd * 1 - 1) ? 0 : item.style.gridColumnEnd * 1 - 1);
-    maxRow = Math.max(isNaN(item.style.gridRowStart) ? 0 : item.style.gridRowStart, maxRow, isNaN(item.style.gridRowEnd * 1 - 1) ? 0 : item.style.gridRowEnd * 1 - 1);
+    maxColumn = Math.max(isNaN(+item.style.gridColumnStart) ? 0 : +item.style.gridColumnStart, maxColumn, isNaN(+item.style.gridColumnEnd - 1) ? 0 : +item.style.gridColumnEnd - 1);
+    maxRow = Math.max(isNaN(+item.style.gridRowStart) ? 0 : +item.style.gridRowStart, maxRow, isNaN(+item.style.gridRowEnd - 1) ? 0 : +item.style.gridRowEnd - 1);
   });
   return {
     maxRow: maxRow,
@@ -523,7 +524,7 @@ function () {
       var tracks = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'none';
       var i,
           len,
-          splittedTrackInfo = tracks.split(templateSplitRegex),
+          splittedTrackInfo = tracks.match(trackLineRegex),
           nameList,
           sizeList,
           sanitizedTracks = [{}],
