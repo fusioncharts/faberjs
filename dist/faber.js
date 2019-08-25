@@ -286,7 +286,7 @@ var validSizes = ['auto', 'none'],
     // repeatFunctionRegex = /repeat\(/g,
 // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
 templateSplitRegex = ' ',
-    trackLineRegex = /(?:[^\s[]+|\[[^[\]]*\])+/g,
+    trackLineRegex = /(?:[^\s[\s(]+|\[[^[\]]*\]|\([^()]*\))+/g,
     getUCFirstString = function getUCFirstString(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 },
@@ -574,6 +574,11 @@ function () {
         }).map(function (name) {
           return name.trim();
         }) || [i + 2 + ''];
+
+        if (/repeat\(/g.test(sizeList[i])) {
+          Object(_helpers_repeatResolver__WEBPACK_IMPORTED_MODULE_3__["repeatResolver"])();
+        }
+
         sanitizedTracks.push({
           start: i + 1,
           end: i + 2,

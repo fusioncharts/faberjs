@@ -8,7 +8,7 @@ const validSizes = ['auto', 'none'],
   // repeatFunctionRegex = /repeat\(/g,
   // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
   templateSplitRegex = ' ',
-  trackLineRegex  = /(?:[^\s[]+|\[[^[\]]*\])+/g,
+  trackLineRegex  = /(?:[^\s[\s(]+|\[[^[\]]*\]|\([^()]*\))+/g,
   getUCFirstString = str => (str.charAt(0).toUpperCase() + str.slice(1)),
   validNestedGrid = tree => {
     let { gridTemplateColumns, gridTemplateRows } = tree.style || {};
@@ -234,7 +234,6 @@ class Grid {
       nameToLineMap = {},
       lineToNameMap = {};
 
-
     nameList = splittedTrackInfo.filter(track => {
       if (track && typeof track === 'string' && track.length) {
         len = track.length;
@@ -264,6 +263,11 @@ class Grid {
     for (i = 0; i < len; i++) {
       startLineNames = (nameList[i] && nameList[i].replace(/\[|\]/g, '').split(' ').filter(name => name.length).map(name => name.trim())) || [i + 1 + ''];
       endLineNames = (nameList[i + 1] && nameList[i + 1].replace(/\[|\]/g, '').split(' ').filter(name => name.length).map(name => name.trim())) || [i + 2 + ''];
+
+      if(/repeat\(/g.test(sizeList[i])) {
+        repeatResolver();
+      }
+
 
       sanitizedTracks.push({
         start: i + 1,
