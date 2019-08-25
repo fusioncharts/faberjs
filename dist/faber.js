@@ -285,8 +285,7 @@ var validSizes = ['auto', 'none'],
     minmaxRegex = /minmax/,
     // repeatFunctionRegex = /repeat\(/g,
 // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
-templateSplitRegex = ' ',
-    trackLineRegex = /(?:[^\s[\s(]+|\[[^[\]]*\]|\([^()]*\))+/g,
+templateSplitRegex = /(?:[^\s[\s(]+|\[[^[\]]*\]|\([^()]*\))+/g,
     getUCFirstString = function getUCFirstString(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 },
@@ -524,7 +523,7 @@ function () {
       var tracks = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'none';
       var i,
           len,
-          splittedTrackInfo = tracks.match(trackLineRegex),
+          splittedTrackInfo = tracks.match(templateSplitRegex),
           nameList,
           sizeList,
           sanitizedTracks = [{}],
@@ -948,7 +947,7 @@ function () {
 var replaceWithAbsValue = function replaceWithAbsValue() {
   var styleTrack = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
   var calculatedTrack = arguments.length > 1 ? arguments[1] : undefined;
-  var trackSplitAr = styleTrack.split(templateSplitRegex).filter(function (track) {
+  var trackSplitAr = (styleTrack.match(templateSplitRegex) || []).filter(function (track) {
     return track && !!track.trim();
   }),
       trackWithAbsValue = '',

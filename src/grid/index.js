@@ -7,8 +7,7 @@ const validSizes = ['auto', 'none'],
   minmaxRegex = /minmax/,
   // repeatFunctionRegex = /repeat\(/g,
   // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
-  templateSplitRegex = ' ',
-  trackLineRegex  = /(?:[^\s[\s(]+|\[[^[\]]*\]|\([^()]*\))+/g,
+  templateSplitRegex  = /(?:[^\s[\s(]+|\[[^[\]]*\]|\([^()]*\))+/g,
   getUCFirstString = str => (str.charAt(0).toUpperCase() + str.slice(1)),
   validNestedGrid = tree => {
     let { gridTemplateColumns, gridTemplateRows } = tree.style || {};
@@ -225,7 +224,7 @@ class Grid {
   _fetchTrackInformation (tracks = 'none') {
     let i,
       len,
-      splittedTrackInfo = tracks.match(trackLineRegex),
+      splittedTrackInfo = tracks.match(templateSplitRegex),
       nameList,
       sizeList,
       sanitizedTracks = [{}],
@@ -594,7 +593,7 @@ class Grid {
 }
 
 const replaceWithAbsValue = (styleTrack = '', calculatedTrack) => {
-    let trackSplitAr = styleTrack.split(templateSplitRegex).filter(track => track && !!track.trim()),
+    let trackSplitAr = (styleTrack.match(templateSplitRegex) || []).filter(track => track && !!track.trim()),
       trackWithAbsValue = '',
       counter = 1;
 
