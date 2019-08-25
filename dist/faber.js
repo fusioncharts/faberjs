@@ -574,11 +574,6 @@ function () {
         }).map(function (name) {
           return name.trim();
         }) || [i + 2 + ''];
-
-        if (/repeat\(/g.test(sizeList[i])) {
-          Object(_helpers_repeatResolver__WEBPACK_IMPORTED_MODULE_3__["repeatResolver"])();
-        }
-
         sanitizedTracks.push({
           start: i + 1,
           end: i + 2,
