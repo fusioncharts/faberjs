@@ -7,7 +7,7 @@ const validSizes = ['auto', 'none'],
   minmaxRegex = /minmax/,
   // repeatFunctionRegex = /repeat\(/g,
   // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
-  templateSplitRegex  = /(?:[^\s[\s(]+|\[[^[\]]*\]|\([^()]*\))+/g,
+  templateSplitRegex  = /(?:[^\s[\]()]+|\[[^[\]]*\]|\([^()]*\))+/g,
   getUCFirstString = str => (str.charAt(0).toUpperCase() + str.slice(1)),
   validNestedGrid = tree => {
     let { gridTemplateColumns, gridTemplateRows } = tree.style || {};
