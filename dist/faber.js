@@ -276,6 +276,14 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
+
+function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 
 
 
@@ -349,12 +357,63 @@ templateSplitRegex = /(?:[^\s[\]()]+|\[[^[\]]*\]|\([^()]*\))+/g,
     }
   }
 },
+    resolveItemStyle = function resolveItemStyle(itemStyle, mapping) {
+  var gridRowStart = itemStyle.gridRowStart,
+      gridRowEnd = itemStyle.gridRowEnd,
+      gridColumnStart = itemStyle.gridColumnStart,
+      gridColumnEnd = itemStyle.gridColumnEnd;
+
+  if (itemStyle.gridColumn) {
+    var _itemStyle$gridColumn = itemStyle.gridColumn.split("/").map(function (line) {
+      return line.trim();
+    });
+
+    var _itemStyle$gridColumn2 = _slicedToArray(_itemStyle$gridColumn, 2);
+
+    gridColumnStart = _itemStyle$gridColumn2[0];
+    gridColumnEnd = _itemStyle$gridColumn2[1];
+    gridColumnStart = mapping ? mapping.col.nameToLineMap[gridColumnStart] : 1;
+
+    if (/span\s+\d+/g.test(gridColumnEnd)) {
+      gridColumnEnd = gridColumnStart + +gridColumnEnd.match(/span\s+(\d+)/)[1];
+    }
+
+    gridColumnEnd = mapping ? mapping.col.nameToLineMap[gridColumnEnd] : 1;
+  }
+
+  if (itemStyle.gridRow) {
+    var _itemStyle$gridRow$sp = itemStyle.gridRow.split("/").map(function (line) {
+      return line.trim();
+    });
+
+    var _itemStyle$gridRow$sp2 = _slicedToArray(_itemStyle$gridRow$sp, 2);
+
+    gridRowStart = _itemStyle$gridRow$sp2[0];
+    gridRowEnd = _itemStyle$gridRow$sp2[1];
+    gridRowStart = mapping ? mapping.row.nameToLineMap[gridRowStart] : 1;
+
+    if (/span\s\d+/g.test(gridRowEnd)) {
+      gridRowEnd = gridRowStart + +gridRowEnd.match(/span\s(\d+)/)[1];
+    }
+
+    gridRowEnd = mapping ? mapping.row.nameToLineMap[gridRowEnd] : 1;
+  }
+
+  return {
+    gridRowStart: gridRowStart,
+    gridRowEnd: gridRowEnd,
+    gridColumnStart: gridColumnStart,
+    gridColumnEnd: gridColumnEnd
+  };
+},
     getMaxRowColumn = function getMaxRowColumn(items) {
   var maxRow = 1,
-      maxColumn = 1;
+      maxColumn = 1,
+      itemStyle;
   items.forEach(function (item) {
-    maxColumn = Math.max(isNaN(+item.style.gridColumnStart) ? 0 : +item.style.gridColumnStart, maxColumn, isNaN(+item.style.gridColumnEnd - 1) ? 0 : +item.style.gridColumnEnd - 1);
-    maxRow = Math.max(isNaN(+item.style.gridRowStart) ? 0 : +item.style.gridRowStart, maxRow, isNaN(+item.style.gridRowEnd - 1) ? 0 : +item.style.gridRowEnd - 1);
+    itemStyle = resolveItemStyle(item.style);
+    maxColumn = Math.max(isNaN(+itemStyle.gridColumnStart) ? 0 : +itemStyle.gridColumnStart, maxColumn, isNaN(+itemStyle.gridColumnEnd - 1) ? 0 : +itemStyle.gridColumnEnd - 1);
+    maxRow = Math.max(isNaN(+itemStyle.gridRowStart) ? 0 : +itemStyle.gridRowStart, maxRow, isNaN(+itemStyle.gridRowEnd - 1) ? 0 : +itemStyle.gridRowEnd - 1);
   });
   return {
     maxRow: maxRow,
@@ -635,7 +694,7 @@ function () {
       }
 
       for (i = 0, len = items.length; i < len; i++) {
-        itemStyle = items[i].style;
+        itemStyle = resolveItemStyle(items[i].style, mapping);
         sanitizedItems.push(_objectSpread({}, items[i], {
           rowStart: mapping.row.nameToLineMap[itemStyle.gridRowStart],
           rowEnd: mapping.row.nameToLineMap[itemStyle.gridRowEnd],
