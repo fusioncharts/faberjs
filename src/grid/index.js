@@ -75,7 +75,7 @@ const validSizes = ['auto', 'none'],
   *
   * @param   {object} itemStyle
   *          itemStyle holds the user given style attributes.
-  * @param   {any} mapping
+  * @param   {object} mapping
   *          mapping hold the references from grid line names to grid line number
   * @returns {object} resolvedItemStyle
   *          returns resolvedItemStyle which contains numeric grid lines
