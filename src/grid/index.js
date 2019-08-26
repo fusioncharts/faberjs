@@ -111,7 +111,7 @@ const validSizes = ['auto', 'none'],
   * @param   {Array} items
   *          items holds the list of grid container children.
   * @returns {object} 
-  *          returns resolvedItemStyle which contains numeric grid lines
+  *          returns maximum number of track lines required
   */  
   getMaxRowColumn = items => {
     let maxRow = 1, maxColumn = 1, itemStyle;
