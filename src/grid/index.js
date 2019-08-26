@@ -69,6 +69,17 @@ const validSizes = ['auto', 'none'],
       }
     }
   },
+  /**
+  * Converts gridColumn and gridRow attribute values into numeric grid lines.
+  * This function is added to extend support for gridColumn and gridRow properties
+  *
+  * @param   {object} itemStyle
+  *          itemStyle holds the user given style attributes.
+  * @param   {any} mapping
+  *          mapping hold the references from grid line names to grid line number
+  * @returns {object} resolvedItemStyle
+  *          returns resolvedItemStyle which contains numeric grid lines
+  */
   resolveItemStyle = (itemStyle, mapping) => {
     let {gridRowStart, gridRowEnd, gridColumnStart, gridColumnEnd} = itemStyle;
     if(itemStyle.gridColumn){
@@ -94,6 +105,14 @@ const validSizes = ['auto', 'none'],
       gridColumnEnd
     };
   },
+  /**
+  * Extracts maximum number of tracklines required when gridTemplateRows / gridTemplateColumns value is 'none' or not given
+  *
+  * @param   {Array} items
+  *          items holds the list of grid container children.
+  * @returns {object} 
+  *          returns resolvedItemStyle which contains numeric grid lines
+  */  
   getMaxRowColumn = items => {
     let maxRow = 1, maxColumn = 1, itemStyle;
     items.forEach((item) => {
