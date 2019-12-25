@@ -315,7 +315,7 @@ class Grid {
       j,
       len;
 
-    for (i = 1; i <= colNum; i++) {
+    for (i = 1; i <= rowNum; i++) {
       gridMatrix.push([]);
     }
     for (i = 0, len = items.length; i < len; i++) {
@@ -329,7 +329,7 @@ class Grid {
         colEnd: mapping.col.nameToLineMap[itemStyle.gridColumnEnd]
       });
       item = sanitizedItems[i];
-      updateMatrix(gridMatrix, {x: item.colStart, y: item.rowStart}, {x: item.colEnd, y: item.rowEnd});
+      updateMatrix(gridMatrix, {y: item.colStart, x: item.rowStart}, {y: item.colEnd, x: item.rowEnd});
     }
 
     autoFlowItems = sanitizedItems.filter(sanitizedItem => (!sanitizedItem.colStart || !sanitizedItem.rowStart));

@@ -630,7 +630,7 @@ function () {
           j,
           len;
 
-      for (i = 1; i <= colNum; i++) {
+      for (i = 1; i <= rowNum; i++) {
         gridMatrix.push([]);
       }
 
@@ -644,11 +644,11 @@ function () {
         }));
         item = sanitizedItems[i];
         updateMatrix(gridMatrix, {
-          x: item.colStart,
-          y: item.rowStart
+          y: item.colStart,
+          x: item.rowStart
         }, {
-          x: item.colEnd,
-          y: item.rowEnd
+          y: item.colEnd,
+          x: item.rowEnd
         });
       }
 
