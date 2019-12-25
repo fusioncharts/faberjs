@@ -315,7 +315,7 @@ class Grid {
       j,
       len;
 
-    for (i = 1; i <= rowNum; i++) {
+    for (i = 1; i <= colNum; i++) {
       gridMatrix.push([]);
     }
     for (i = 0, len = items.length; i < len; i++) {
