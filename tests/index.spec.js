@@ -309,3 +309,66 @@ describe('Grid with non-spanning items test', () => {
     });
   });
 });
+
+describe('Grid autoFlow test', () => {
+  it('GridMatrix should create proper no of rows and columns and should not throw error', () => {
+    let nodeTree = {
+      style: {
+        display: 'grid',
+        width: 700,
+        height: 500
+      },
+      children: [
+        {
+          style: {
+            gridColumnStart: 1,
+            gridColumnEnd: 2,
+            gridRowStart: 1,
+            gridRowEnd: 2
+          }
+        },
+        {
+          style: {
+            gridColumnStart: 2,
+            gridColumnEnd: 3,
+            gridRowStart: 1,
+            gridRowEnd: 2
+          }
+        },
+        {
+          style: {
+            gridColumnStart: 3,
+            gridColumnEnd: 4,
+            gridRowStart: 1,
+            gridRowEnd: 2
+          }
+        },
+        {
+          style: {
+            gridColumnStart: 4,
+            gridColumnEnd: 5,
+            gridRowStart: 1,
+            gridRowEnd: 2
+          }
+        },
+        {
+          style: {
+            gridColumnStart: 5,
+            gridColumnEnd: 6,
+            gridRowStart: 1,
+            gridRowEnd: 2
+          }
+        },
+        {
+          style: {
+            gridColumnStart: 6,
+            gridColumnEnd: 7,
+            gridRowStart: 1,
+            gridRowEnd: 2
+          }
+        }
+      ]
+    };
+    computeLayout(nodeTree);
+  });
+});

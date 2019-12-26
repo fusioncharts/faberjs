@@ -374,7 +374,7 @@ class Grid {
         colEnd: mapping.col.nameToLineMap[itemStyle.gridColumnEnd]
       });
       item = sanitizedItems[i];
-      updateMatrix(gridMatrix, {x: item.colStart, y: item.rowStart}, {x: item.colEnd, y: item.rowEnd});
+      updateMatrix(gridMatrix, {x: item.rowStart, y: item.colStart}, {x: item.rowEnd, y: item.colEnd});
     }
 
     autoFlowItems = sanitizedItems.filter(sanitizedItem => (!sanitizedItem.colStart || !sanitizedItem.rowStart));

@@ -4,26 +4,28 @@ const chart = {
     width: 400,
     height: 400,
     justifyItems: 'center',
-    alignItems: 'center',
-    gridTemplateRows: '[one] 200px [two] 200px [three three-dash]',
-    gridTemplateColumns: '[one] 200px [two] 200px [three three-dash]',
-    templateRowsHTML: ['[one]', '200px', '[two]', '200px', '[three three-dash]'],
-    templateColumnsHTML: ['[one]', '200px', '[two]', '200px', '[three three-dash]']
+    //gridTemplateRows: '[one] 100 [two] 100 [three]',
+    //gridTemplateColumns: '[one] 100 [two] 100 [three]',
+    templateRowsHTML: ['none'],
+    templateColumnsHTML: ['none']
   },
   children: [
     {
       style: {
         width: 100,
         height: '100',
-        gridRow: '1 / span 2',
-        gridColumn: '1 / three-dash'
+        gridRowStart: '1',
+        gridRowEnd: '2',
+        gridColumnStart: '1',
+        gridColumnEnd: '2'
       }
     },
     {
       style: {
         width: 100,
         height: '100',
-        gridRow: '1 / 2',
+        gridRowStart: '1',
+        gridRowEnd: '2',
         gridColumnStart: '2',
         gridColumnEnd: '3'
       }
@@ -34,15 +36,18 @@ const chart = {
         height: '100',
         gridRowStart: '2',
         gridRowEnd: '3',
-        gridColumn: '1 / 2'
+        gridColumnStart: '1',
+        gridColumnEnd: '2'
       }
     },
     {
       style: {
         width: 100,
         height: '100',
-        gridRow: '2 / three',
-        gridColumn: 'two / 3'
+        gridRowStart: '2',
+        gridRowEnd: '3',
+        gridColumnStart: '2',
+        gridColumnEnd: '3'
       }
     }
   ]
@@ -215,18 +220,10 @@ function getHTMLCSSInlined () {
     childEl.classList.add('bordered');
     childEl.style.width = child.style.width;
     childEl.style.height = child.style.height;
-    if(child.style.gridColumnStart) {
-      childEl.style.gridColumnStart = child.style.gridColumnStart;
-      childEl.style.gridColumnEnd = child.style.gridColumnEnd;
-    }else if(child.style.gridColumn){
-      childEl.style.gridColumn = child.style.gridColumn;
-    }
-    if(child.style.gridRowStart) {
-      childEl.style.gridRowStart = child.style.gridRowStart;
-      childEl.style.gridRowEnd = child.style.gridRowEnd;
-    }else if(child.style.gridRow){
-      childEl.style.gridRow = child.style.gridRow;
-    }
+    childEl.style.gridColumnStart = child.style.gridColumnStart;
+    childEl.style.gridColumnEnd = child.style.gridColumnEnd;
+    childEl.style.gridRowStart = child.style.gridRowStart;
+    childEl.style.gridRowEnd = child.style.gridRowEnd;
     htmlContainerEl.appendChild(childEl);
   });
 }
