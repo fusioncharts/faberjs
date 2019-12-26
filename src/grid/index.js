@@ -7,7 +7,7 @@ const validSizes = ['auto', 'none'],
   minmaxRegex = /minmax/,
   // repeatFunctionRegex = /repeat\(/g,
   // templateSplitRegex = /\s(\[.*\])*(\(.*\))*/g,
-  templateSplitRegex = ' ',
+  templateSplitRegex  = /(?:[^\s[\]()]+|\[[^[\]]*\]|\([^()]*\))+/g,
   getUCFirstString = str => (str.charAt(0).toUpperCase() + str.slice(1)),
   validNestedGrid = tree => {
     let { gridTemplateColumns, gridTemplateRows } = tree.style || {};
@@ -69,11 +69,56 @@ const validSizes = ['auto', 'none'],
       }
     }
   },
+  /**
+  * Converts gridColumn and gridRow attribute values into numeric grid lines.
+  * This function is added to extend support for gridColumn and gridRow properties
+  *
+  * @param   {object} itemStyle
+  *          itemStyle holds the user given style attributes.
+  * @param   {object} mapping
+  *          mapping hold the references from grid line names to grid line number
+  * @returns {object} resolvedItemStyle
+  *          returns resolvedItemStyle which contains numeric grid lines
+  */
+  resolveItemStyle = (itemStyle, mapping) => {
+    let {gridRowStart, gridRowEnd, gridColumnStart, gridColumnEnd} = itemStyle;
+    if(itemStyle.gridColumn){
+      [gridColumnStart, gridColumnEnd] = itemStyle.gridColumn.split("/").map(line => line.trim());
+      gridColumnStart = mapping ? mapping.col.nameToLineMap[gridColumnStart] : 1;
+      if(/span\s+\d+/g.test(gridColumnEnd)){
+        gridColumnEnd = gridColumnStart + +gridColumnEnd.match(/span\s+(\d+)/)[1];
+      }
+      gridColumnEnd = mapping ? mapping.col.nameToLineMap[gridColumnEnd] : 1;
+    }
+    if(itemStyle.gridRow){
+      [gridRowStart, gridRowEnd] = itemStyle.gridRow.split("/").map(line => line.trim());
+      gridRowStart = mapping ? mapping.row.nameToLineMap[gridRowStart] : 1;
+      if(/span\s\d+/g.test(gridRowEnd)){
+        gridRowEnd = gridRowStart + +gridRowEnd.match(/span\s(\d+)/)[1];
+      }
+      gridRowEnd = mapping ? mapping.row.nameToLineMap[gridRowEnd] : 1;
+    }
+    return {
+      gridRowStart,
+      gridRowEnd,
+      gridColumnStart,
+      gridColumnEnd
+    };
+  },
+  /**
+  * Extracts maximum number of tracklines required when gridTemplateRows / gridTemplateColumns value is 'none' or not given
+  *
+  * @param   {Array} items
+  *          items holds the list of grid container children.
+  * @returns {object} 
+  *          returns maximum number of track lines required
+  */  
   getMaxRowColumn = items => {
-    let maxRow = 1, maxColumn = 1;
+    let maxRow = 1, maxColumn = 1, itemStyle;
     items.forEach((item) => {
-      maxColumn = Math.max(isNaN(item.style.gridColumnStart) ? 0 : item.style.gridColumnStart, maxColumn, isNaN(item.style.gridColumnEnd * 1 - 1) ? 0 : item.style.gridColumnEnd * 1 - 1);
-      maxRow = Math.max(isNaN(item.style.gridRowStart) ? 0 : item.style.gridRowStart, maxRow, isNaN(item.style.gridRowEnd * 1 - 1) ? 0 : item.style.gridRowEnd * 1 - 1);
+      itemStyle = resolveItemStyle(item.style);
+      maxColumn = Math.max(isNaN(+itemStyle.gridColumnStart) ? 0 : +itemStyle.gridColumnStart, maxColumn, isNaN(+itemStyle.gridColumnEnd - 1) ? 0 : +itemStyle.gridColumnEnd - 1);
+      maxRow = Math.max(isNaN(+itemStyle.gridRowStart) ? 0 : +itemStyle.gridRowStart, maxRow, isNaN(+itemStyle.gridRowEnd - 1) ? 0 : +itemStyle.gridRowEnd - 1);
     });
     return {
       maxRow,
@@ -224,7 +269,7 @@ class Grid {
   _fetchTrackInformation (tracks = 'none') {
     let i,
       len,
-      splittedTrackInfo = tracks.split(templateSplitRegex),
+      splittedTrackInfo = tracks.match(templateSplitRegex),
       nameList,
       sizeList,
       sanitizedTracks = [{}],
@@ -319,7 +364,7 @@ class Grid {
       gridMatrix.push([]);
     }
     for (i = 0, len = items.length; i < len; i++) {
-      itemStyle = items[i].style;
+      itemStyle = resolveItemStyle(items[i].style, mapping);
 
       sanitizedItems.push({
         ...items[i],
@@ -329,7 +374,7 @@ class Grid {
         colEnd: mapping.col.nameToLineMap[itemStyle.gridColumnEnd]
       });
       item = sanitizedItems[i];
-      updateMatrix(gridMatrix, {y: item.colStart, x: item.rowStart}, {y: item.colEnd, x: item.rowEnd});
+      updateMatrix(gridMatrix, {x: item.rowStart, y: item.colStart}, {x: item.rowEnd, y: item.colEnd});
     }
 
     autoFlowItems = sanitizedItems.filter(sanitizedItem => (!sanitizedItem.colStart || !sanitizedItem.rowStart));
@@ -593,7 +638,7 @@ class Grid {
 }
 
 const replaceWithAbsValue = (styleTrack = '', calculatedTrack) => {
-    let trackSplitAr = styleTrack.split(templateSplitRegex).filter(track => track && !!track.trim()),
+    let trackSplitAr = (styleTrack.match(templateSplitRegex) || []).filter(track => track && !!track.trim()),
       trackWithAbsValue = '',
       counter = 1;
 
